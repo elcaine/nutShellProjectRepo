@@ -139,7 +139,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lex.yy.c" />
     <ClCompile Include="mAin.c" />
+    <ClCompile Include="Makefile" />
+    <ClCompile Include="PARSER.tab.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LEXER.l" />
+    <None Include="PARSER.y" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PARSER.tab.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
