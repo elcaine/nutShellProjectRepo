@@ -6,7 +6,7 @@ all : flex - config bison - config parse - spec scan - spec nutshell nutshell - 
 
 
 flex - config :
-	flex LEXER.l #FLEX_FILE_NAME
+	flex FLEX_FILE_NAME
 
 	bison - config :
 	bison - d parse - spec.y
