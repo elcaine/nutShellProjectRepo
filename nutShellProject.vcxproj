@@ -88,6 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,17 +140,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="lex.yy.c" />
+    <ClCompile Include="flex" />
+    <ClCompile Include="FLEX_FILE_NAME" />
     <ClCompile Include="mAin.c" />
-    <ClCompile Include="Makefile" />
-    <ClCompile Include="PARSER.tab.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="LEXER.l" />
-    <None Include="PARSER.y" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="PARSER.tab.h" />
+    <ClCompile Include="Makefile">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

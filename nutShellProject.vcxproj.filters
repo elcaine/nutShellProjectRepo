@@ -21,24 +21,11 @@
     <ClCompile Include="Makefile">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PARSER.tab.c">
+    <ClCompile Include="FLEX_FILE_NAME">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lex.yy.c">
+    <ClCompile Include="flex">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="LEXER.l">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="PARSER.y">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="PARSER.tab.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
