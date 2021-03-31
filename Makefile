@@ -1,27 +1,15 @@
-# Simple Makefile
+CC=/usr/bin/cc
 
-CC = / usr / bin / cc
+all:  bison-config flex-config nutshell
 
-all : flex - config bison - config parse - spec scan - spec nutshell nutshell - out
+bison-config:
+	bison -d nutshparser.y
 
+flex-config:
+	flex nutshscanner.l
 
-flex - config :
-	flex FLEX_FILE_NAME
+nutshell: 
+	$(CC) nutshell.c nutshparser.tab.c lex.yy.c -o nutshell
 
-	bison - config :
-	bison - d parse - spec.y
-
-	scan - spec : lex.yy.c
-	$(CC) - c lex.yy.c - o scan - spec.lex.o
-
-
-	parse - spec : parse - spec.tab.c
-	$(CC) - c parse - spec.tab.c - o parse - spec.y.o
-
-
-	nutshell : nutshell.c
-	$(CC) - g - c nutshell.c - o nutshell.o
-
-	nutshell - out :
-	$(CC) - o nutshell nutshell.o scan - spec.lex.o parse - spec.y.o - ll - lm - lfl
-
+clean:
+	rm nutshparser.tab.c nutshparser.tab.h lex.yy.c nutshell
