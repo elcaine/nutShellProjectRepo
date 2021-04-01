@@ -19,7 +19,7 @@ int runSetAlias(char *name, char *word);
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE PWD LS SETENV CD STRING ALIAS END
+%token <string> BYE PWD LS SETENV UNSETENV PRINTENV CD STRING ALIAS END
 
 %%
 cmd_line    :
@@ -27,7 +27,10 @@ cmd_line    :
 	| PWD END				{runPWD(); return 1; } 
 	| LS STRING END				{runLS($2); return 1; } 
 	| SETENV STRING STRING END		{runSetenv($2, $3); return 1;}
+	| UNSETENV STRING END			{runUnsetenv($2); return 1;} 
+	| PRINTENV END				{runPrintenv(); return 1; } 
 	| CD STRING END        			{runCD($2); return 1;}
+	| ALIAS END				{runPrintAlias(); return 1}
 	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
 
 %%
@@ -97,12 +100,33 @@ int runSetAlias(char *name, char *word) {
 
 	return 1;
 }
+int runPrintAlias () {
+
+// loop through the alias.table names 
+for (int i = 1; i < aliasIndex; i++) {
+             printf(aliasTable.name[i + 1]);
+	     printf("\n");
+    }
+//if empty printf("No known aliases"); 
+
+return 1;
+} 
+
+int runUnalias (char* name) {
+// search for the name 
+//delete
+//if not found print error 
+return 1;
+}
+
+//Print working directory 
 int runPWD() {
 	char cwd[1028];
 	getcwd(cwd, sizeof(cwd));
 	printf("Current hacker directory: %s\n", cwd);
 	return 1;
 }
+//This will need more work but basics is here
 int runLS(char *name) 
 { 
 	struct dirent **namelist; 
@@ -126,6 +150,7 @@ int runLS(char *name)
 	} 
 	return 1;  
 } 
+//https://man7.org/tlpi/code/online/dist/proc/setenv.c.html#setenv
 int runSetenv(const char *name, const char *value)
 {
     char *es;
@@ -139,7 +164,7 @@ int runSetenv(const char *name, const char *value)
     if (getenv(name) != NULL  )
         return 0;
 
-    unsetenv(name);             /* Remove all occurrences */
+    runUnsetenv(name);             /* Remove all occurrences */
 
     es = malloc(strlen(name) + strlen(value) + 2);
                                 /* +2 for '=' and null terminator */
@@ -153,7 +178,7 @@ int runSetenv(const char *name, const char *value)
     return (putenv(es) != 0) ? -1 : 0;
 }
 
-int unsetenv(const char *name)
+int runUnsetenv(const char *name)
 {
     extern char **environ;
     char **ep, **sp;
@@ -183,3 +208,15 @@ int unsetenv(const char *name)
 
     return 0;
 }
+extern char **environ; //Global variable of user environment 
+//just iterate through it 
+int runPrintenv() {
+  char **s = environ;
+
+  for (; *s; s++) {
+    printf("%s\n", *s);
+  }
+
+  return 1;
+}
+ 
