@@ -43,7 +43,9 @@ ANYCHAR            [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_
 bye                	{ return BYE; }
 pwd			{ return PWD; } 
 ls			{ return LS; }
-setenv			{ return SETENV; }			
+setenv			{ return SETENV; }
+unsetenv		{ return UNSETENV; }
+printenv		{ return PRINTENV; }			
 cd		        { return CD;}
 alias		        { return ALIAS; }
 "\n"		        { return END; }
