@@ -33,7 +33,7 @@ cmd_line    :
 	| UNALIAS STRING  END			{runUnalias($2); return 1; } 
 	| ALIAS END				{runPrintAlias(); return 1}
 	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
-	| VARIABLE END 				{runVariable($2); return 1;} 
+	| VARIABLE END 				{runVariable(); return 1;} 
 
 
 %%
@@ -227,9 +227,9 @@ int runPrintenv() {
   return 1;
 }
 
-int runVariable(char *s) {
+int runVariable() {
 //need to check the environment 
 // plug in into the first variable 
-printf("Hello there %s\n", s ); 
+printf("Hello there \n"); 
 return 1;
 }

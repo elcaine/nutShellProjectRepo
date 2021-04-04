@@ -42,8 +42,8 @@ ANYCHAR            [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_
      
 <string_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); return STRING;}
 <string_condition>[\"]           {BEGIN(INITIAL);} 
-<INITIAL,string_condition,expect>"${"[A-Za-z!]+"}"      {printf( "found a variable \n" );}
-<expect>\n                       { BEGIN(INITIAL);}
+<INITIAL,string_condition,expect>"${"[A-Za-z!]+"}"      {printf( "found a variable \n" ); yylval.string = strdup(yytext); return VARIABLE;}
+<expect>\n                                         { BEGIN(INITIAL);}
  
    
 
@@ -63,6 +63,12 @@ alias		        { return ALIAS; }
 [0-9]+                	{ printf( "found an integer, = %d\n",atoi( yytext ) ); }
 "$"        		{ printf( "found a dollar sign\n" ); }
 "{"			{ printf("found a curly brace\n" ); }
+"<"        		{ printf( "found forward\n" ); }
+">"        		{ printf( "found backwards\n" ); }
+"|"        		{ printf( "found a pipe\n" ); }
+"&"        		{ printf( "found an amp\n" ); }
+
+
 
 
 
