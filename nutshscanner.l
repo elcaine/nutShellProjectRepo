@@ -7,9 +7,7 @@
 #include "global.h"
 #include <stdbool.h>
 #include <errno.h>
-
-          //  int line_num = 1;
-
+ int counter = 0; 
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
 char* subAliases(char* name){
     for (int i = 0; i < aliasIndex; i++) {
@@ -35,17 +33,19 @@ CHAR            [.A-Za-z!\/_-][.A-Za-z!\/_-]*
 ANYCHAR            [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -]*
 
 %x string_condition
-%s expect
+%x variable_condition
+
 
 %%
     
      
 <string_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); return STRING;}
 <string_condition>[\"]           {BEGIN(INITIAL);} 
-<INITIAL,string_condition,expect>"${"[A-Za-z!]+"}"      {printf( "found a variable \n" ); yylval.string = strdup(yytext); return VARIABLE;}
-<expect>\n                                         { BEGIN(INITIAL);}
+
+<variable_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); return VARIABLE;}
+<variable_condition>"}"            {BEGIN(INITIAL);} 
+
  
-   
 
 
 [ ]		            { }
@@ -60,6 +60,7 @@ unalias			{ return UNALIAS; }
 alias		        { return ALIAS; }
 "\n"		        { return END; }
  [\"]                 	{ BEGIN(string_condition); }
+"${"			{ BEGIN(variable_condition); }
 [0-9]+                	{ printf( "found an integer, = %d\n",atoi( yytext ) ); }
 "$"        		{ printf( "found a dollar sign\n" ); }
 "{"			{ printf("found a curly brace\n" ); }
@@ -67,20 +68,21 @@ alias		        { return ALIAS; }
 ">"        		{ printf( "found backwards\n" ); }
 "|"        		{ printf( "found a pipe\n" ); }
 "&"        		{ printf( "found an amp\n" ); }
+"Count"			{ printf( "%d\n", counter); }
 
 
 
 
-
-{CHAR}+              {if(ifAlias(yytext)) {
+{CHAR}+              {if(ifAlias(yytext) && counter == 0) {
                         printf("alias before sub: %s\n", yytext);
                            char *yycopy = strdup( subAliases(yytext) );
                            for ( int i = strlen(subAliases(yytext)) - 1; i >= 0; --i )
                                unput( yycopy[i] );
                            free( yycopy );
                       } else {
-                        printf("yytext: %s\n", yytext);
+                         printf("yytext: %s\n", yytext);
                         yylval.string = strdup(yytext);
+			counter ++; 
                         return STRING;
                     };
                      }

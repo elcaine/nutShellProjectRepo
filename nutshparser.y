@@ -108,7 +108,7 @@ int runSetAlias(char *name, char *word) {
 int runPrintAlias () {
 
  for (int i = 1; i < aliasIndex; i++) {
-             printf(aliasTable.name[i + 1]);
+             printf("%s = %s\n", aliasTable.name[i + 1], aliasTable.word[i + 1]);
 	     printf("\n");
     }
 //if empty printf("No known aliases"); 
@@ -117,10 +117,11 @@ return 1;
 } 
 // Deletes alias
  int runUnalias (char *name) {
+     printf("%s\n", name);
 	for (int i = 0; i < aliasIndex; i++) {
-		//if( aliasTable.word[aliasIndex] == name){
-			printf("found\n");
-		//}
+      		   if(strcmp(aliasTable.name[i], name) == 0) {
+                        printf(aliasTable.name[i]); 
+ 		 }
 	}
 	 	return 1;
 }
@@ -227,7 +228,7 @@ int runPrintenv() {
   return 1;
 }
 
-int runVariable() {
+int runVariable( ) {
 //need to check the environment 
 // plug in into the first variable 
 printf("Hello there \n"); 
