@@ -36,20 +36,27 @@ ANYCHAR            [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_
 %x string_condition
 %%
 
-<string_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); return STRING;}
-<string_condition>[\"]          {BEGIN(INITIAL);}
-
+<string_condition>{ANYCHAR}+                            { yylval.string = strdup(yytext); return STRING;}
+<string_condition>[\"]                                  { BEGIN(INITIAL);}
+<INITIAL,string_condition,expect>"${"[A-Za-z!]+"}"      { printf( "found a variable \n" );} 
+<expect>\n                                              { BEGIN(INITIAL);}
+    
 [ ]		            { }
 bye                	{ return BYE; }
-pwd			{ return PWD; } 
-ls			{ return LS; }
-setenv			{ return SETENV; }
-unsetenv		{ return UNSETENV; }
-printenv		{ return PRINTENV; }			
-cd		        { return CD;}
+pwd			        { return PWD; } 
+ls		        	{ return LS; }
+setenv		    	{ return SETENV; }
+unsetenv	    	{ return UNSETENV; }
+printenv		    { return PRINTENV; }			
+cd		            { return CD;}
 alias		        { return ALIAS; }
 "\n"		        { return END; }
- [\"]                 { BEGIN(string_condition); }
+[\"]                { BEGIN(string_condition); }
+[0-9]+              { printf( "found an integer, = %d\n",atoi( yytext ) ); }
+"$"         		{ printf( "found a dollar sign\n" ); }
+"{"			        { printf("found a curly brace\n" ); }
+ 
+ 
 {CHAR}+              {if(ifAlias(yytext)) {
                         printf("yytext before sub: %s\n", yytext);
                         // source: https://www.cs.princeton.edu/~appel/modern/c/software/flex/flex.html
