@@ -14,6 +14,17 @@ int yylex();
 int yyerror(char *s);
 int runCD(char* arg);
 int runSetAlias(char *name, char *word);
+/* 
+*  Caine added stuff below 4/4 in attempt to remove compile warnings.
+*  Not sure if the .y and .l stuff needs function prototypes the way c/c++
+*  stuff does, but I was recieving the warings (even from command line making).
+*/
+int runPWD();
+int runLS(char* name);
+int runSetenv(const char* name, const char* value);
+int runUnsetenv(const char* name);
+int runPrintenv();
+int runPrintAlias();
 %}
 
 %union {char *string;}
@@ -23,15 +34,15 @@ int runSetAlias(char *name, char *word);
 
 %%
 cmd_line    :
-	BYE END 		                {exit(1); return 1; }
-	| PWD END				{runPWD(); return 1; } 
-	| LS STRING END				{runLS($2); return 1; } 
-	| SETENV STRING STRING END		{runSetenv($2, $3); return 1;}
-	| UNSETENV STRING END			{runUnsetenv($2); return 1;} 
-	| PRINTENV END				{runPrintenv(); return 1; } 
-	| CD STRING END        			{runCD($2); return 1;}
-	| ALIAS END				{runPrintAlias(); return 1}
-	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
+	BYE END 		                {exit(1);				return 1;}
+	| PWD END						{runPWD();				return 1;} 
+	| LS STRING END					{runLS($2);				return 1;} 
+	| SETENV STRING STRING END		{runSetenv($2, $3);		return 1;}
+	| UNSETENV STRING END			{runUnsetenv($2);		return 1;} 
+	| PRINTENV END					{runPrintenv();			return 1;} 
+	| CD STRING END        			{runCD($2);				return 1;}
+	| ALIAS END						{runPrintAlias();		return 1;}
+	| ALIAS STRING STRING END		{runSetAlias($2, $3);	return 1;}
 
 %%
 
@@ -41,6 +52,24 @@ int yyerror(char *s) {
   }
 
 int runCD(char* arg) {
+	/*
+	* Caine added printf testing code here to see funtion input
+	*/
+	printf("*** runCD arg input ***\n");
+	int L = (int)strlen(arg);
+	printf("arg length: %d\n", L);
+	printf("%s\n", arg);
+	printf("*** starting arg luper ***\n");
+	for (int i = 0; i < L; ++i) {
+		
+		printf("arg[%d]: ", i);
+		printf("%c\n", arg[i]);
+	}
+
+	/*
+	* End of that testing crap
+	*/
+
 	if (arg[0] != '/') { // arg is relative path
 		strcat(varTable.word[0], "/");
 		strcat(varTable.word[0], arg);
@@ -104,8 +133,9 @@ int runPrintAlias () {
 
 // loop through the alias.table names 
 for (int i = 1; i < aliasIndex; i++) {
-             printf(aliasTable.name[i + 1]);
-	     printf("\n");
+	printf("*** place holder until line below fixed ***");
+    //printf(aliasTable.name[i + 1]);
+	printf("\n");
     }
 //if empty printf("No known aliases"); 
 
