@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <errno.h>
 
+          //  int line_num = 1;
 
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
 char* subAliases(char* name){
@@ -30,44 +31,54 @@ bool ifAlias(char* name){
 %array
 %option noyywrap
 
-CHAR            [.A-Za-z0-9!\/_-][.A-Za-z0-9!\/_-]*
+CHAR            [.A-Za-z!\/_-][.A-Za-z!\/_-]*
 ANYCHAR            [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -]*
 
 %x string_condition
-%%
+%s expect
 
-<string_condition>{ANYCHAR}+                            { yylval.string = strdup(yytext); return STRING;}
-<string_condition>[\"]                                  { BEGIN(INITIAL);}
-<INITIAL,string_condition,expect>"${"[A-Za-z!]+"}"      { printf( "found a variable \n" );} 
-<expect>\n                                              { BEGIN(INITIAL);}
+%%
     
+     
+<string_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); return STRING;}
+<string_condition>[\"]           {BEGIN(INITIAL);} 
+<INITIAL,string_condition,expect>"${"[A-Za-z!]+"}"      {printf( "found a variable \n" );}
+<expect>\n                       { BEGIN(INITIAL);}
+ 
+   
+
+
 [ ]		            { }
 bye                	{ return BYE; }
-pwd			        { return PWD; } 
-ls		        	{ return LS; }
-setenv		    	{ return SETENV; }
-unsetenv	    	{ return UNSETENV; }
-printenv		    { return PRINTENV; }			
-cd		            { return CD;}
+pwd			{ return PWD; } 
+ls			{ return LS; }
+setenv			{ return SETENV; }
+unsetenv		{ return UNSETENV; }
+printenv		{ return PRINTENV; }			
+cd		        { return CD;}
+unalias			{ return UNALIAS; }
 alias		        { return ALIAS; }
 "\n"		        { return END; }
-[\"]                { BEGIN(string_condition); }
-[0-9]+              { printf( "found an integer, = %d\n",atoi( yytext ) ); }
-"$"         		{ printf( "found a dollar sign\n" ); }
-"{"			        { printf("found a curly brace\n" ); }
- 
- 
+ [\"]                 	{ BEGIN(string_condition); }
+[0-9]+                	{ printf( "found an integer, = %d\n",atoi( yytext ) ); }
+"$"        		{ printf( "found a dollar sign\n" ); }
+"{"			{ printf("found a curly brace\n" ); }
+
+
+
 {CHAR}+              {if(ifAlias(yytext)) {
-                        printf("yytext before sub: %s\n", yytext);
-                        // source: https://www.cs.princeton.edu/~appel/modern/c/software/flex/flex.html
+                        printf("alias before sub: %s\n", yytext);
                            char *yycopy = strdup( subAliases(yytext) );
                            for ( int i = strlen(subAliases(yytext)) - 1; i >= 0; --i )
                                unput( yycopy[i] );
                            free( yycopy );
-                    } else {
+                      } else {
                         printf("yytext: %s\n", yytext);
                         yylval.string = strdup(yytext);
                         return STRING;
                     };
                      }
+ 
 %%
+
+ // source: https://www.cs.princeton.edu/~appel/modern/c/software/flex/flex.html

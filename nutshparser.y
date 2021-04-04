@@ -19,7 +19,7 @@ int runSetAlias(char *name, char *word);
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE PWD LS SETENV UNSETENV PRINTENV CD STRING ALIAS END
+%token <string> BYE PWD LS SETENV UNSETENV PRINTENV VARIABLE CD STRING ALIAS UNALIAS END
 
 %%
 cmd_line    :
@@ -30,8 +30,11 @@ cmd_line    :
 	| UNSETENV STRING END			{runUnsetenv($2); return 1;} 
 	| PRINTENV END				{runPrintenv(); return 1; } 
 	| CD STRING END        			{runCD($2); return 1;}
+	| UNALIAS STRING  END			{runUnalias($2); return 1; } 
 	| ALIAS END				{runPrintAlias(); return 1}
 	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
+	| VARIABLE END 				{runVariable($2); return 1;} 
+
 
 %%
 
@@ -100,10 +103,11 @@ int runSetAlias(char *name, char *word) {
 
 	return 1;
 }
+//Prints all aliases 
+
 int runPrintAlias () {
 
-// loop through the alias.table names 
-for (int i = 1; i < aliasIndex; i++) {
+ for (int i = 1; i < aliasIndex; i++) {
              printf(aliasTable.name[i + 1]);
 	     printf("\n");
     }
@@ -111,13 +115,16 @@ for (int i = 1; i < aliasIndex; i++) {
 
 return 1;
 } 
-
-int runUnalias (char* name) {
-// search for the name 
-//delete
-//if not found print error 
-return 1;
+// Deletes alias
+ int runUnalias (char *name) {
+	for (int i = 0; i < aliasIndex; i++) {
+		//if( aliasTable.word[aliasIndex] == name){
+			printf("found\n");
+		//}
+	}
+	 	return 1;
 }
+ 
 
 //Print working directory 
 int runPWD() {
@@ -219,4 +226,10 @@ int runPrintenv() {
 
   return 1;
 }
- 
+
+int runVariable(char *s) {
+//need to check the environment 
+// plug in into the first variable 
+printf("Hello there %s\n", s ); 
+return 1;
+}
