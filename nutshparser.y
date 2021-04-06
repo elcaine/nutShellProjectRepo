@@ -32,22 +32,25 @@ int runPrintAlias();
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE PWD HOME LS SETENV UNSETENV PRINTENV CD STRING ALIAS END
+%token <string> BYE PWD HOME LS SETENV UNSETENV PRINTENV VARIABLE CD STRING ALIAS UNALIAS END
 
 %%
 cmd_line    :
-	BYE END 		                {exit(1);				return 1;}
-	| PWD END						{runPWD();				return 1;}
+	BYE END 		                {exit(1); return 1; }
+	| PWD END				{runPWD(); return 1; } 
 	| HOME END						{runCD(varTable.word[1]);return 1;}
-	| LS STRING END					{runLS($2);				return 1;} 
-	| SETENV STRING STRING END		{runSetenv($2, $3);		return 1;}
-	| UNSETENV STRING END			{runUnsetenv($2);		return 1;} 
-	| PRINTENV END					{runPrintenv();			return 1;}
+	| LS STRING END				{runLS($2); return 1; } 
+	| SETENV STRING STRING END		{runSetenv($2, $3); return 1;}
+	| UNSETENV STRING END			{runUnsetenv($2); return 1;} 
+	| PRINTENV END				{runPrintenv(); return 1; } 
 	| CD END						{runCDnil();			return 1;}
 	| CD STRING END        			{runCD($2);				return 1;}
 	| CD STRING STRING END			{runCDspc($2, $3);		return 1;}
-	| ALIAS END						{runPrintAlias();		return 1;}
-	| ALIAS STRING STRING END		{runSetAlias($2, $3);	return 1;}
+	| UNALIAS STRING  END			{runUnalias($2); return 1; } 
+	| ALIAS END				{runPrintAlias(); return 1}
+	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
+	| VARIABLE END 				{runVariable(); return 1;} 
+
 
 %%
 
@@ -159,25 +162,29 @@ int runSetAlias(char *name, char *word) {
 
 	return 1;
 }
+
+//Prints all aliases 
 int runPrintAlias () {
 
-// loop through the alias.table names 
-for (int i = 1; i < aliasIndex; i++) {
-	printf("*** place holder until line below fixed ***");
-    //printf(aliasTable.name[i + 1]);
-	printf("\n");
+ for (int i = 1; i < aliasIndex; i++) {
+             printf("%s = %s\n", aliasTable.name[i + 1], aliasTable.word[i + 1]);
+	     printf("\n");
     }
 //if empty printf("No known aliases"); 
 
 return 1;
 } 
-
-int runUnalias (char* name) {
-// search for the name 
-//delete
-//if not found print error 
-return 1;
+// Deletes alias
+ int runUnalias (char *name) {
+     printf("%s\n", name);
+	for (int i = 0; i < aliasIndex; i++) {
+      		   if(strcmp(aliasTable.name[i], name) == 0) {
+                        printf(aliasTable.name[i]); 
+ 		 }
+	}
+	 	return 1;
 }
+ 
 
 //Print working directory 
 int runPWD() {
@@ -279,4 +286,10 @@ int runPrintenv() {
 
   return 1;
 }
- 
+
+int runVariable( ) {
+//need to check the environment 
+// plug in into the first variable 
+printf("Hello there \n"); 
+return 1;
+}
