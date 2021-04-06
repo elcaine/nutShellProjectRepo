@@ -6,6 +6,14 @@
 #include "global.h"
 #include <unistd.h>
 #include <limits.h>
+
+#define nutRED         "\x1b[31m"
+#define nutGREEN       "\x1b[32m"
+#define nutYELLOW      "\x1b[33m"
+#define nutBLUE        "\x1b[34m"
+#define nutMAGENTA     "\x1b[35m"
+#define nutCYAN        "\x1b[36m"
+#define nutRESET       "\x1b[0m"
 char *getcwd(char *buf, size_t size);
 
 int main()
@@ -15,20 +23,20 @@ int main()
     char cwd[PATH_MAX];
     getcwd(cwd, sizeof(cwd));
 
-    strcpy(varTable.var[varIndex], "PWD");
+    strcpy(varTable.var[varIndex], "PWD");      // 0
     strcpy(varTable.word[varIndex], cwd);
     varIndex++;
-    strcpy(varTable.var[varIndex], "HOME");
+    strcpy(varTable.var[varIndex], "HOME");     // 1
     strcpy(varTable.word[varIndex], cwd);
     varIndex++;
-    strcpy(varTable.var[varIndex], "PROMPT");
+    strcpy(varTable.var[varIndex], "PROMPT");   // 2
     strcpy(varTable.word[varIndex], "$");
     varIndex++;
-    strcpy(varTable.var[varIndex], "PATH");
+    strcpy(varTable.var[varIndex], "PATH");     // 3
     strcpy(varTable.word[varIndex], ".:/bin");
     varIndex++;
 
-    strcpy(aliasTable.name[aliasIndex], ".");
+    strcpy(aliasTable.name[aliasIndex], ".");   // 0 sets current working dir
     strcpy(aliasTable.word[aliasIndex], cwd);
     aliasIndex++;
 
@@ -37,14 +45,17 @@ int main()
         *pointer ='\0';
         pointer++;
     }
-    strcpy(aliasTable.name[aliasIndex], "..");
+    strcpy(aliasTable.name[aliasIndex], "..");  // 1 sets dir holding cwd
     strcpy(aliasTable.word[aliasIndex], cwd);
     aliasIndex++;
 
+    char* userName = getenv("USER");
     system("clear");
+
     while(1)
-    {
-        printf("[%s]>> ", varTable.word[2]);
+    {        
+        printf(nutRED "%s" nutYELLOW, userName);
+        printf("[%s]>> " nutGREEN, varTable.word[2]);
         yyparse();
     }
 

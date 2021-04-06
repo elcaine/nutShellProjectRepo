@@ -41,6 +41,7 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9*'/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9*'/_=~ 
 
 [ ]		    { }
 bye         { return BYE; }
+home        { return HOME; }
 pwd			{ return PWD; } 
 ls			{ return LS; }
 setenv		{ return SETENV; }
