@@ -27,6 +27,9 @@ int runSetenv(const char* name, const char* value);
 int runUnsetenv(const char* name);
 int runPrintenv();
 int runPrintAlias();
+// more
+int runUnalias(char* name);
+int runVariable();
 %}
 
 %union {char *string;}
@@ -36,20 +39,20 @@ int runPrintAlias();
 
 %%
 cmd_line    :
-	BYE END 		                {exit(1); return 1; }
-	| PWD END				{runPWD(); return 1; } 
-	| HOME END						{runCD(varTable.word[1]);return 1;}
-	| LS STRING END				{runLS($2); return 1; } 
-	| SETENV STRING STRING END		{runSetenv($2, $3); return 1;}
-	| UNSETENV STRING END			{runUnsetenv($2); return 1;} 
-	| PRINTENV END				{runPrintenv(); return 1; } 
-	| CD END						{runCDnil();			return 1;}
-	| CD STRING END        			{runCD($2);				return 1;}
-	| CD STRING STRING END			{runCDspc($2, $3);		return 1;}
-	| UNALIAS STRING  END			{runUnalias($2); return 1; } 
-	| ALIAS END				{runPrintAlias(); return 1}
-	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
-	| VARIABLE END 				{runVariable(); return 1;} 
+	BYE END 		                {exit(1);					return 1; }
+	| PWD END						{runPWD();					return 1; } 
+	| HOME END						{runCD(varTable.word[1]);	return 1; }
+	| LS STRING END					{runLS($2);					return 1; } 
+	| SETENV STRING STRING END		{runSetenv($2, $3);			return 1; }
+	| UNSETENV STRING END			{runUnsetenv($2);			return 1; } 
+	| PRINTENV END					{runPrintenv();				return 1; } 
+	| CD END						{runCDnil();				return 1; }
+	| CD STRING END        			{runCD($2);					return 1; }
+	| CD STRING STRING END			{runCDspc($2, $3);			return 1; }
+	| UNALIAS STRING  END			{runUnalias($2);			return 1; } 
+	| ALIAS END						{ runPrintAlias();			return 1; }
+	| ALIAS STRING STRING END		{runSetAlias($2, $3);		return 1; }
+	| VARIABLE END 					{runVariable();				return 1; } 
 
 
 %%
@@ -179,7 +182,8 @@ return 1;
      printf("%s\n", name);
 	for (int i = 0; i < aliasIndex; i++) {
       		   if(strcmp(aliasTable.name[i], name) == 0) {
-                        printf(aliasTable.name[i]); 
+				   //printf(aliasTable.name[i]);
+				   printf("Caine commented out the above code\n");
  		 }
 	}
 	 	return 1;
