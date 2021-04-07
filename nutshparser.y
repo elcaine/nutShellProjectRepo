@@ -12,45 +12,97 @@
 
 int yylex();
 int yyerror(char *s);
+int runCDnil();
 int runCD(char* arg);
+int runCDspc(char* arg1, char* arg2);
 int runSetAlias(char *name, char *word);
+/* 
+*  Caine added stuff below 4/4 in attempt to remove compile warnings.
+*  Not sure if the .y and .l stuff needs function prototypes the way c/c++
+*  stuff does, but I was recieving the warings (even from command line making).
+*/
+int runPWD();
+int runLS(char* name);
+int runSetenv(const char* name, const char* value);
+int runUnsetenv(const char* name);
+int runPrintenv();
+int runPrintAlias();
+// more
+int runUnalias(char* name);
+int runVariable();
 %}
 
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE PWD LS SETENV UNSETENV PRINTENV VARIABLE CD STRING ALIAS UNALIAS END
+%token <string> BYE PWD HOME LS SETENV UNSETENV PRINTENV VARIABLE CD STRING ALIAS UNALIAS END
 
 %%
 cmd_line    :
-	BYE END 		                {exit(1); return 1; }
-	| PWD END				{runPWD(); return 1; } 
-	| LS STRING END				{runLS($2); return 1; } 
-	| SETENV STRING STRING END		{runSetenv($2, $3); return 1;}
-	| UNSETENV STRING END			{runUnsetenv($2); return 1;} 
-	| PRINTENV END				{runPrintenv(); return 1; } 
-	| CD STRING END        			{runCD($2); return 1;}
-	| UNALIAS STRING  END			{runUnalias($2); return 1; } 
-	| ALIAS END				{runPrintAlias(); return 1}
-	| ALIAS STRING STRING END		{runSetAlias($2, $3); return 1;}
-	| VARIABLE END 				{runVariable(); return 1;} 
+	BYE END 		                {exit(1);					return 1; }
+	| PWD END						{runPWD();					return 1; } 
+	| HOME END						{runCD(varTable.word[1]);	return 1; }
+	| LS STRING END					{runLS($2);					return 1; } 
+	| SETENV STRING STRING END		{runSetenv($2, $3);			return 1; }
+	| UNSETENV STRING END			{runUnsetenv($2);			return 1; } 
+	| PRINTENV END					{runPrintenv();				return 1; } 
+	| CD END						{runCDnil();				return 1; }
+	| CD STRING END        			{runCD($2);					return 1; }
+	| CD STRING STRING END			{runCDspc($2, $3);			return 1; }
+	| UNALIAS STRING  END			{runUnalias($2);			return 1; } 
+	| ALIAS END						{ runPrintAlias();			return 1; }
+	| ALIAS STRING STRING END		{runSetAlias($2, $3);		return 1; }
+	| VARIABLE END 					{runVariable();				return 1; } 
 
 
 %%
 
 int yyerror(char *s) {
-  printf("%s\n",s);
-  return 0;
+	printf("yyerror: %s\n",s);
+	return 0;
   }
 
+
+int runCDnil() {
+	runCD(varTable.word[1]);
+	return 1;
+}
+
+int runCDspc(char* arg1, char* arg2) {
+	strcat(arg1, " ");
+	strcat(arg1, arg2);
+	runCD(arg1);
+	return 1;
+}
 int runCD(char* arg) {
+	/*
+	* Caine added printf testing code here to see funtion input
+	*/
+	/*printf("*** runCD arg input ***\n");
+	int L = (int)strlen(arg);
+	printf("arg length: %d\n", L);
+	printf("%s\n", arg);
+	for (int i = 0; i < L; ++i) {
+		
+		printf("arg[%d]: ", i);
+		printf("%c\n", arg[i]);
+	}
+	printf("*** end of char stuff ***\n");
+	//*/
+	/*
+	* End of that testing crap
+	*/
 	if (arg[0] != '/') { // arg is relative path
+		char tmpPathName[PATH_MAX];
+		strcpy(tmpPathName, varTable.word[0]);
 		strcat(varTable.word[0], "/");
 		strcat(varTable.word[0], arg);
 
+		//printf("tmpPathName: %s\n", tmpPathName);  // testing only ** remove for final release **
+
 		if(chdir(varTable.word[0]) == 0) {
-			strcpy(aliasTable.word[0], varTable.word[0]);
-			strcpy(aliasTable.word[1], varTable.word[0]);
+			strcpy(aliasTable.word[0], varTable.word[0]);	// sets cwd
+			strcpy(aliasTable.word[1], varTable.word[0]);	// sets dir holding cwd
 			char *pointer = strrchr(aliasTable.word[1], '/');
 			while(*pointer != '\0') {
 				*pointer ='\0';
@@ -58,16 +110,16 @@ int runCD(char* arg) {
 			}
 		}
 		else {
-			//strcpy(varTable.word[0], varTable.word[0]); // fix
-			printf("Directory not found\n");
+			printf("cd: %s: No such file or directory.\n", arg);
+			strcpy(varTable.word[0], tmpPathName); // Replaces cwd with previous valid cwd
 			return 1;
 		}
 	}
 	else { // arg is absolute path
 		if(chdir(arg) == 0){
+			strcpy(varTable.word[0], arg);
 			strcpy(aliasTable.word[0], arg);
 			strcpy(aliasTable.word[1], arg);
-			strcpy(varTable.word[0], arg);
 			char *pointer = strrchr(aliasTable.word[1], '/');
 			while(*pointer != '\0') {
 			*pointer ='\0';
@@ -75,10 +127,20 @@ int runCD(char* arg) {
 			}
 		}
 		else {
-			printf("Directory not found\n");
-                       	return 1;
+			printf("cd: %s: No such file or directory.\n", arg);
+            return 1;
 		}
 	}
+	/*	// More testing...  finding out about the xTable.word stuff
+	int atLen = *(&aliasTable.word + 1) - aliasTable.word;
+	int atVar = *(&varTable.word + 1) - varTable.word;
+	printf("_______\n");
+	for (int i = 0; i < 6; ++i) {
+		printf("aliasTable.word[%d]: %s\n", i, aliasTable.word[i]);
+		printf("varTable.word[%d]: %s\n", i, varTable.word[i]);
+		printf("_______\n");
+	}
+	*/
 	return 1;
 }
 
@@ -103,8 +165,8 @@ int runSetAlias(char *name, char *word) {
 
 	return 1;
 }
-//Prints all aliases 
 
+//Prints all aliases 
 int runPrintAlias () {
 
  for (int i = 1; i < aliasIndex; i++) {
@@ -120,7 +182,8 @@ return 1;
      printf("%s\n", name);
 	for (int i = 0; i < aliasIndex; i++) {
       		   if(strcmp(aliasTable.name[i], name) == 0) {
-                        printf(aliasTable.name[i]); 
+				   //printf(aliasTable.name[i]);
+				   printf("Caine commented out the above code\n");
  		 }
 	}
 	 	return 1;

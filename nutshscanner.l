@@ -2,12 +2,14 @@
 // This is ONLY a demo micro-shell whose purpose is to illustrate the need for and how to handle nested alias substitutions and how to use Flex start conditions
 // This is to help students learn these specific capabilities, the code is by far not a complete nutshell by any means.
 // Only "alias name word", "cd word", and "bye" run. 
-#include "nutshparser.tab.h"
 #include <string.h>
-#include "global.h"
 #include <stdbool.h>
 #include <errno.h>
+#include "global.h"
+#include "nutshparser.tab.h"
+
  int counter = 0; 
+ 
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
 char* subAliases(char* name){
     for (int i = 0; i < aliasIndex; i++) {
@@ -29,6 +31,7 @@ bool ifAlias(char* name){
 %array
 %option noyywrap
 
+
 CHAR            [.A-Za-z!\/_-][.A-Za-z!\/_-]*
 ANYCHAR            [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -]*
 
@@ -48,8 +51,9 @@ ANYCHAR            [)(*&%$#@!`;,\.a-zA-Z0-9'/*_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'/*_
  
 
 
-[ ]		            { }
-bye                	{ return BYE; }
+[ ]		    { }
+bye         { return BYE; }
+home        { return HOME; }
 pwd			{ return PWD; } 
 ls			{ return LS; }
 setenv			{ return SETENV; }
@@ -86,7 +90,7 @@ alias		        { return ALIAS; }
                         return STRING;
                     };
                      }
- 
+
 %%
 
  // source: https://www.cs.princeton.edu/~appel/modern/c/software/flex/flex.html
