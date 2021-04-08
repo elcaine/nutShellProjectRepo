@@ -14,7 +14,9 @@
 #define nutMAGENTA     "\x1b[35m"
 #define nutCYAN        "\x1b[36m"
 #define nutRESET       "\x1b[0m"
-char *getcwd(char *buf, size_t size);
+
+//char *getcwd(char *buf, size_t size);  // commented this out, seems like it can be removed
+extern int yyparse();
 
 int main()
 {
@@ -36,7 +38,7 @@ int main()
     strcpy(varTable.word[varIndex], ".:/bin");
     varIndex++;
 
-    strcpy(aliasTable.name[aliasIndex], ".");   // 0 sets current working dir
+    strcpy(aliasTable.name[aliasIndex], ".");   // 0 initializes current working dir
     strcpy(aliasTable.word[aliasIndex], cwd);
     aliasIndex++;
 
@@ -45,7 +47,7 @@ int main()
         *pointer ='\0';
         pointer++;
     }
-    strcpy(aliasTable.name[aliasIndex], "..");  // 1 sets dir holding cwd
+    strcpy(aliasTable.name[aliasIndex], "..");  // 1 initializes current parent directory
     strcpy(aliasTable.word[aliasIndex], cwd);
     aliasIndex++;
 

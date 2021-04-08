@@ -9,19 +9,20 @@
 #include "global.h"
 #include <dirent.h> 
 #include <errno.h>
+//
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <time.h>
 
+int wipe();
 int yylex();
 int yyerror(char *s);
 int runCDnil();
 int runCD(char* arg);
 int runCDspc(char* arg1, char* arg2);
 int runSetAlias(char *name, char *word);
-/* 
-*  Caine added stuff below 4/4 in attempt to remove compile warnings.
-*  Not sure if the .y and .l stuff needs function prototypes the way c/c++
-*  stuff does, but I was recieving the warings (even from command line making).
-*/
 int runPWD();
+int runLSnil();
 int runLS(char* name);
 int runSetenv(const char* name, const char* value);
 int runUnsetenv(const char* name);
@@ -35,14 +36,16 @@ int runVariable();
 %union {char *string;}
 
 %start cmd_line
-%token <string> BYE PWD HOME LS SETENV UNSETENV PRINTENV VARIABLE CD STRING ALIAS UNALIAS END
+%token <string> WIPE BYE PWD HOME LS SETENV UNSETENV PRINTENV VARIABLE CD STRING ALIAS UNALIAS END
 
 %%
 cmd_line    :
 	BYE END 		                {exit(1);					return 1; }
+	| WIPE END						{wipe();					return 1; }
 	| PWD END						{runPWD();					return 1; } 
 	| HOME END						{runCD(varTable.word[1]);	return 1; }
-	| LS STRING END					{runLS($2);					return 1; } 
+	| LS END						{runLSnil();				return 1; }
+	| LS STRING END					{runLS($2);					return 1; }
 	| SETENV STRING STRING END		{runSetenv($2, $3);			return 1; }
 	| UNSETENV STRING END			{runUnsetenv($2);			return 1; } 
 	| PRINTENV END					{runPrintenv();				return 1; } 
@@ -50,24 +53,30 @@ cmd_line    :
 	| CD STRING END        			{runCD($2);					return 1; }
 	| CD STRING STRING END			{runCDspc($2, $3);			return 1; }
 	| UNALIAS STRING  END			{runUnalias($2);			return 1; } 
-	| ALIAS END						{ runPrintAlias();			return 1; }
+	| ALIAS END						{runPrintAlias();			return 1; }
 	| ALIAS STRING STRING END		{runSetAlias($2, $3);		return 1; }
 	| VARIABLE END 					{runVariable();				return 1; } 
 
 
 %%
+int wipe() {
+		/*
+		for (int i = 0; i < 10000; ++i) {
+			printf("\e[1;1H\e[2J");
+		}//*/
+		system("clear");
+	}
 
 int yyerror(char *s) {
 	printf("yyerror: %s\n",s);
 	return 0;
   }
 
-
+// Change Directory (CD) functions to accomodate 3 different args scenarios:  0, 1, or more
 int runCDnil() {
 	runCD(varTable.word[1]);
 	return 1;
 }
-
 int runCDspc(char* arg1, char* arg2) {
 	strcat(arg1, " ");
 	strcat(arg1, arg2);
@@ -75,30 +84,11 @@ int runCDspc(char* arg1, char* arg2) {
 	return 1;
 }
 int runCD(char* arg) {
-	/*
-	* Caine added printf testing code here to see funtion input
-	*/
-	/*printf("*** runCD arg input ***\n");
-	int L = (int)strlen(arg);
-	printf("arg length: %d\n", L);
-	printf("%s\n", arg);
-	for (int i = 0; i < L; ++i) {
-		
-		printf("arg[%d]: ", i);
-		printf("%c\n", arg[i]);
-	}
-	printf("*** end of char stuff ***\n");
-	//*/
-	/*
-	* End of that testing crap
-	*/
 	if (arg[0] != '/') { // arg is relative path
 		char tmpPathName[PATH_MAX];
 		strcpy(tmpPathName, varTable.word[0]);
 		strcat(varTable.word[0], "/");
 		strcat(varTable.word[0], arg);
-
-		//printf("tmpPathName: %s\n", tmpPathName);  // testing only ** remove for final release **
 
 		if(chdir(varTable.word[0]) == 0) {
 			strcpy(aliasTable.word[0], varTable.word[0]);	// sets cwd
@@ -131,16 +121,6 @@ int runCD(char* arg) {
             return 1;
 		}
 	}
-	/*	// More testing...  finding out about the xTable.word stuff
-	int atLen = *(&aliasTable.word + 1) - aliasTable.word;
-	int atVar = *(&varTable.word + 1) - varTable.word;
-	printf("_______\n");
-	for (int i = 0; i < 6; ++i) {
-		printf("aliasTable.word[%d]: %s\n", i, aliasTable.word[i]);
-		printf("varTable.word[%d]: %s\n", i, varTable.word[i]);
-		printf("_______\n");
-	}
-	*/
 	return 1;
 }
 
@@ -190,37 +170,109 @@ return 1;
 }
  
 
-//Print working directory 
+//Print working directory	***** DOES THIS NEED TO CHANGED??? *******
 int runPWD() {
-	char cwd[1028];
+	char cwd[PATH_MAX];
 	getcwd(cwd, sizeof(cwd));
 	printf("Current hacker directory: %s\n", cwd);
 	return 1;
 }
+
 //This will need more work but basics is here
+int runLSnil() {
+	runLS(" ");
+	return 1;
+}
 int runLS(char *name) 
 { 
-	struct dirent **namelist; 
-	int n; 
-	 
-		n=scandir(".",&namelist,NULL,alphasort); 
-	 	  
+	printf("runLS *name -->\t%s\n", name); // *** remove me ****
+	/*struct dirent **namelist; 
+	int n;
+	//n = scandir(".", &namelist, 1, alphasort);
+	n = scandir(".", &namelist, NULL, alphasort);
+
 	if(n < 0) 
 	{ 
 		perror("scandir"); 
 		exit(EXIT_FAILURE); 
 	} 
 	else 
-	{ 
-		while (n--) 
+	{
+		int o = 0;
+		while (o < n) 
 		{ 
-			printf("%s\n",namelist[n]->d_name); 
-			free(namelist[n]); 
+			printf("%s\n", namelist[o]->d_name); 
+			free(namelist[o]);
+			++o;
 		} 
 		free(namelist); 
 	} 
+	*/
+	//*
+	int t = 1, done;
+	int argc = 3;
+	DIR* dir = opendir(name);
+	struct dirent* ent;
+	if (argc < 3)
+	{
+		printf("The correct syntax is ls dirname\n");
+		exit(0);
+	}
+	if ((dir == NULL))  // To check the existence of the directory
+	{
+		perror("Unable to open");
+		exit(1);
+	}
+	if (argc == 3)
+	{
+		dir = opendir(name);
+		while ((ent = readdir(dir)) != NULL)
+		{
+			printf("%s\t", ent->d_name);
+			if ((int)strlen(ent->d_name) < 17)
+				printf("\t");
+
+			if ((int)strlen(ent->d_name) < 5)
+				printf("\t");
+			//printf("size of ent->d_name: *** %d ***  ", (int)strlen(ent->d_name));
+			if (1)
+			{
+				struct stat sbuf;
+				stat(ent->d_name, &sbuf);
+				if (sbuf.st_size == 0)   //Check for empty file
+					printf("d");
+				//Find out the permissions for files and directories
+				if (sbuf.st_mode & S_IREAD)
+					printf("r");
+				else
+					printf("-");
+				
+				if (sbuf.st_mode & S_IWRITE)
+					printf("w");
+				else
+					printf("-");
+				
+				if (sbuf.st_mode & S_IEXEC)
+					printf("x");
+				else
+					printf("-");
+				//Print the size
+				printf("\t%d", (int)sbuf.st_size);
+				//Print the date and time of last modified
+				printf("\t%s", ctime(&sbuf.st_ctime));
+			}
+		}
+		//close(dir);
+	}
+	if (argc == 2)
+	{
+		while ((ent = readdir(dir)) != NULL)
+			printf("%s\n", ent->d_name);
+	}
+	//*/
 	return 1;  
-} 
+}
+
 //https://man7.org/tlpi/code/online/dist/proc/setenv.c.html#setenv
 int runSetenv(const char *name, const char *value)
 {
@@ -279,7 +331,9 @@ int runUnsetenv(const char *name)
 
     return 0;
 }
+
 extern char **environ; //Global variable of user environment 
+
 //just iterate through it 
 int runPrintenv() {
   char **s = environ;
