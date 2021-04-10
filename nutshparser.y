@@ -149,23 +149,20 @@ int runSetAlias(char *name, char *word) {
 
 //Prints all aliases 
 int runPrintAlias () {
-
- for (int i = 1; i < aliasIndex; i++) {
-             printf("%s = %s\n", aliasTable.name[i + 1], aliasTable.word[i + 1]);
-	     printf("\n");
-    }
-//if empty printf("No known aliases"); 
-
+for (int i = 1; i < aliasIndex; i++) {
+	if((strcmp(aliasTable.name[i], "") != 0) && (strcmp(aliasTable.name[i], "..") != 0)){ 
+             printf("%s=%s\n", aliasTable.name[i], aliasTable.word[i]);}
+     }
 return 1;
 } 
+
 // Deletes alias
  int runUnalias (char *name) {
-     printf("%s\n", name);
-	for (int i = 0; i < aliasIndex; i++) {
+    for (int i = 0; i < aliasIndex; i++) {
       		   if(strcmp(aliasTable.name[i], name) == 0) {
-				   //printf(aliasTable.name[i]);
-				   printf("Caine commented out the above code\n");
- 		 }
+				  strcpy(aliasTable.name[i], "");
+				  strcpy(aliasTable.word[i], "");
+   				     		 }
 	}
 	 	return 1;
 }
