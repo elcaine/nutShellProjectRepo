@@ -60,15 +60,15 @@ ls			{ return LS; }
 setenv		{ return SETENV; }
 unsetenv	{ return UNSETENV; }
 printenv	{ return PRINTENV; }			
-cd		    { return CD;}
-unalias		{ return UNALIAS; }
-alias		{ return ALIAS; }
+cd		{ counter ++; return CD;}
+unalias		{  counter ++; return UNALIAS; }
+alias		{  counter ++; return ALIAS; }
 "\n"		{ return END; }
-[\"]        { BEGIN (string_condition); }
+[\"]       	{ BEGIN (string_condition); }
 "${"		{ BEGIN (variable_condition); }
-[0-9]+      { printf("found an integer, = %d\n",atoi( yytext ) ); }
+[0-9]+     	{ printf("found an integer, = %d\n",atoi( yytext ) ); }
 "$"        	{ printf("found a dollar sign\n" ); }
-"{"			{ printf("found a curly brace\n" ); }
+"{"		{ printf("found a curly brace\n" ); }
 "<"        	{ printf("found forward\n" ); }
 ">"        	{ printf("found backwards\n" ); }
 "|"        	{ printf("found a pipe\n" ); }
@@ -91,8 +91,7 @@ alias		{ return ALIAS; }
                 {
                    printf("yytext: %s\n", yytext);
                    yylval.string = strdup(yytext);
-			       counter ++; 
-                   return STRING;
+                    return STRING;
                 };
             }
 
