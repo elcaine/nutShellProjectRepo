@@ -45,7 +45,10 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ 
 <string_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); return STRING;}
 <string_condition>[\"]           {BEGIN(INITIAL);} 
 
-<variable_condition>{ANYCHAR}+   { yylval.string = strdup(yytext); return VARIABLE;}
+<variable_condition>{ANYCHAR}+   { if(ifVar(yytext)){
+ 			                               yylval.string = strdup( subVar(yytext)); 
+		                              	 printf("%s\n",yylval.string); return STRING;}
+	                                  else{ printf("Error, no such variable");} }
 <variable_condition>"}"          {BEGIN(INITIAL);} 
 
  
