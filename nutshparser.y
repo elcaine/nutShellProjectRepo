@@ -295,7 +295,10 @@ int runLS(char* name)
 
 //https://man7.org/tlpi/code/online/dist/proc/setenv.c.html#setenv
 int runSetenv(const char *name, const char *value)
-{
+{    //Push intoVar Table
+    strcpy(varTable.var[varIndex], name); 
+    strcpy(varTable.word[varIndex], value);
+    varIndex++;
     char *es;
 
     if (name == NULL || name[0] == '\0' || strchr(name, '=') != NULL ||
@@ -322,7 +325,13 @@ int runSetenv(const char *name, const char *value)
 }
 
 int runUnsetenv(const char *name)
-{
+{    //Delete from varTable
+     for (int i = 0; i < varIndex; i++) {
+      		   if(strcmp(varTable.var[i], name) == 0) {
+				  strcpy(varTable.var[i], "");
+				  strcpy(varTable.var[i], "");
+   				     		 }
+	}
     extern char **environ;
     char **ep, **sp;
     size_t len;
