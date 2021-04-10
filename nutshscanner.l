@@ -64,16 +64,16 @@ cd		    { return CD;}
 unalias		{ return UNALIAS; }
 alias		{ return ALIAS; }
 "\n"		{ return END; }
-[\"]        { BEGIN(string_condition); }
-"${"		{ BEGIN(variable_condition); }
-[0-9]+      { printf( "found an integer, = %d\n",atoi( yytext ) ); }
-"$"        	{ printf( "found a dollar sign\n" ); }
+[\"]        { BEGIN (string_condition); }
+"${"		{ BEGIN (variable_condition); }
+[0-9]+      { printf("found an integer, = %d\n",atoi( yytext ) ); }
+"$"        	{ printf("found a dollar sign\n" ); }
 "{"			{ printf("found a curly brace\n" ); }
-"<"        	{ printf( "found forward\n" ); }
-">"        	{ printf( "found backwards\n" ); }
-"|"        	{ printf( "found a pipe\n" ); }
-"&"        	{ printf( "found an amp\n" ); }
-"Count"		{ printf( "%d\n", counter); }
+"<"        	{ printf("found forward\n" ); }
+">"        	{ printf("found backwards\n" ); }
+"|"        	{ printf("found a pipe\n" ); }
+"&"        	{ printf("found an amp\n" ); }
+"Count"		{ printf("%d\n", counter); }
 
 
 

@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <assert.h>
 
 int wipe();
 int yylex();
@@ -86,7 +87,7 @@ int runCDspc(char* arg1, char* arg2) {
 int runCD(char* arg) {
 	if (arg[0] != '/') { // arg is relative path
 		char tmpPathName[PATH_MAX];
-		strcpy(tmpPathName, varTable.word[0]);
+		strcpy(tmpPathName, varTable.word[0]); 
 		strcat(varTable.word[0], "/");
 		strcat(varTable.word[0], arg);
 
@@ -183,10 +184,29 @@ int runLSnil() {
 	runLS(" ");
 	return 1;
 }
-int runLS(char *name) 
-{ 
+int runLS(char* name)
+{
 	printf("runLS *name -->\t%s\n", name); // *** remove me ****
-	/*struct dirent **namelist; 
+	char* bPath = "/usr/bin/ls";
+	char* args[] = { bPath, name, NULL };
+
+	pid_t dispid = getpid();
+	pid_t shpid = fork();
+	printf("Before if().... shpid: %d\n", shpid);
+	int execvNUM = -69;
+	if (!shpid) {
+		//printf("Inside the if() thang\n");
+		execvNUM = execv(bPath, args);
+	}
+	else {
+		printf("else route:  \n");
+	}
+	//waitpid(shpid);
+	printf("After if().... execvNUM: %d\n", execvNUM);
+
+	// All of this is trash since LS (and all non-built in commands) should be called from bin
+	/*  
+	struct dirent **namelist; 
 	int n;
 	//n = scandir(".", &namelist, 1, alphasort);
 	n = scandir(".", &namelist, NULL, alphasort);
@@ -207,8 +227,11 @@ int runLS(char *name)
 		} 
 		free(namelist); 
 	} 
-	*/
-	//*
+	//*/
+	;
+	// This too
+	;
+	/*
 	int t = 1, done;
 	int argc = 3;
 	DIR* dir = opendir(name);

@@ -52,7 +52,12 @@ int main()
     aliasIndex++;
 
     char* userName = getenv("USER");
-    system("clear");
+    //system("clear");
+    printf("\n****************************************\n");
+    printf("*                                      *\n");
+    printf("* SSSSSssssstarting the NuttyShell!!!! *\n");
+    printf("*                                      *");
+    printf("\n****************************************\n");
 
     while(1)
     {        
@@ -60,6 +65,5 @@ int main()
         printf("[%s]>> " nutGREEN, varTable.word[2]);
         yyparse();
     }
-
     return 0;
 }

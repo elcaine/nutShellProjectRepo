@@ -9,7 +9,7 @@ flex-config:
 	flex nutshscanner.l
 
 nutshell: 
-	$(CC) nutshell.c nutshparser.tab.c lex.yy.c -o nutshell
+	$(CC) nutshell.c nutshparser.tab.c lex.yy.c -o nutshell  && ./nutShell
 
 clean:
 	rm nutshparser.tab.c nutshparser.tab.h lex.yy.c nutshell
