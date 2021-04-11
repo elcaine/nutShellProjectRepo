@@ -9,6 +9,7 @@
 #include "global.h"
 #include <dirent.h> 
 #include <errno.h>
+#include <stdbool.h>
 //
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,6 +33,7 @@ int runPrintAlias();
 // more
 int runUnalias(char* name);
 int runVariable();
+int wait(int);
 %}
 
 %union {char *string;}
@@ -183,23 +185,103 @@ int runLSnil() {
 }
 int runLS(char* name)
 {
-	printf("runLS *name -->\t%s\n", name); // *** remove me ****
-	char* bPath = "/usr/bin/ls";
-	char* args[] = { bPath, name, NULL };
+	int i1 = 0, i2 = 0;								// Indices 
+	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH
+	char argWords[128][128] = { '\0' };				// Array to hold each directory
+	strcpy(argPtr, varTable.word[3]);
 
-	pid_t dispid = getpid();
-	pid_t shpid = fork();
-	printf("Before if().... shpid: %d\n", shpid);
-	int execvNUM = -69;
-	if (!shpid) {
-		//printf("Inside the if() thang\n");
-		execvNUM = execv(bPath, args);
+	// *** Remove these printf shits ***
+	printf("===== PARSING PATH INTO DIRECTORY ELEMENTS =====\n");
+	printf("runLS with input parameter (char* name): %s\n", name);
+	printf("PATH from varTable.word[3]: %s\n", varTable.word[3]);
+
+	// Appends each char from the PATH, moving to next string when ':' encountered
+	while (argPtr[i2] != '\0') {
+		if (argPtr[i2] == ':') {
+			++i1;
+		}
+		else {
+			strncat(argWords[i1], &argPtr[i2], 1);
+		}
+		++i2;
+	}
+
+	//  Printf-ing the different directories parsed *** REMOVE ME ***
+	i2 = 0;
+	printf("The colon separated PATH variables after parsing:\n");
+	if (argWords[i2][0] == '\0') {
+		printf("*** SOME KIND OF ERROR HERE (no directories in PATH?) ***\n");
+		return 1;
+	}
+	while (argWords[i2][0] != '\0') {
+		printf("argWords[%d] holds: <%s>\n", i2, argWords[i2]);
+		++i2;
+	}
+
+	// Search for target command within the parsed directories
+	printf("\n\n===== SEARCHING PARSED DIRECTORIES =====\n");
+	DIR* d;
+	struct dirent* dir;
+	bool found = false;
+	for (i2 = 0; i2 <= i1; ++i2) {
+		printf("Now inspectimating dir: %s\n", argWords[i2]);
+		d = opendir(argWords[i2]);
+		if (d) {
+			while ((dir = readdir(d)) != NULL) {
+				if (strcmp(dir->d_name, name) == 0) {
+					//printf("*** WINNER WINNER, CHICKEN DINNER --> %s IS HERE!!!\n", dir->d_name);
+					//printf("%s\n", dir->d_name);
+					found = true;
+				}
+			}
+			closedir(d);
+		}
+		if (found) break;
+	}
+
+	if (i2 > i1) {
+		printf("Command not found, you suck!!!\n");
+		return 1;
 	}
 	else {
-		printf("else route:  \n");
+		printf("*** Command %s is in %s ***\n", name, argWords[i2]);
+		printf("So, you found it, WHAT... AN... ACCOMPLISHMENT\tYou must be so proud!\n");
+		strcat(argWords[i2], "/cat"); // * will need to change hard-coded "/ls" to dynamic input
 	}
-	//waitpid(shpid);
-	printf("After if().... execvNUM: %d\n", execvNUM);
+
+	// Doing the fork() stuff
+	printf("\n===== STARTING fork() STUFF =====\n");
+	//char tmp[strlen(argWords[i2])];
+	//strcpy(tmp, argWords[i2]);
+	char* tmp = "global.h";			// keep this one for "cat" testing
+	//char* tmp = varTable.word[1];	// keep this one for "ls" testing
+	char* args[] = { argWords[i2], tmp, NULL }; // varTable.word[1] = HOME (for testing ls)
+	pid_t pParent, pChild;
+	/*int f1[2];
+	int f2[2];
+	int f3[2];
+	int f4[2];
+	if (pipe(f1)) { printf("fork Failed"); return 1; }
+	if (pipe(f2)) { printf("fork Failed"); return 1; }
+	if (pipe(f3)) { printf("fork Failed"); return 1; }
+	if (pipe(f4)) { printf("fork Failed"); return 1; }
+	*/
+	pParent = fork();
+
+	if (pParent == 0) { // Child
+		printf("This is the child.  pid: %d\t", getpid());
+		printf("pParent: %d\n", pParent);
+		printf("Here comes the actual execv stuff....\n");
+		execv(argWords[i2], args);	// execv(parameter 1, parameter 2)
+									// 1. char*:	the path/command
+									// 2. char*[]:	parameter 1 is first, rest are opitons, NULL is last element
+	}
+	else {				// Parent (pParent != 0)
+		printf("This is the parent.  pid: %d\t", getpid());
+		printf("pParent: %d\n", pParent);
+		wait(0);
+	}
+	printf("if() completed\n");
 
 	// All of this is trash since LS (and all non-built in commands) should be called from bin
 	/*  

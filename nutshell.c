@@ -35,7 +35,7 @@ int main()
     strcpy(varTable.word[varIndex], "$");
     varIndex++;
     strcpy(varTable.var[varIndex], "PATH");     // 3
-    strcpy(varTable.word[varIndex], ".:/bin");
+    strcpy(varTable.word[varIndex], ".:/usr/bin:/usr:/mnt/c/Users:/mnt/c/Users/Caine Winters/Documents");
     varIndex++;
 
     strcpy(aliasTable.name[aliasIndex], ".");   // 0 initializes current working dir
