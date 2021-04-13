@@ -154,7 +154,7 @@ wipe        	{ return WIPE; }
 bye        	{ return BYE; }
 home       	{ return HOME; }
 pwd		{ counter ++; return PWD; } 
-ls		{ return LS; }
+gen		{ return GEN; }
 setenv		{ counter ++;return SETENV; }
 unsetenv	{ counter ++;return UNSETENV; }
 printenv	{ counter ++;return PRINTENV; }			
