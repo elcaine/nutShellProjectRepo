@@ -37,26 +37,26 @@ int runVariable();
 %union {char *string;}
 
 %start cmd_line
-%token <string> WIPE BYE PWD HOME LS SETENV UNSETENV PRINTENV VARIABLE CD STRING ALIAS UNALIAS END
+%token <string> WIPE BYE PWD HOME LS SETENV UNSETENV PRINTENV CD STRING ALIAS UNALIAS COMMAND END
 
 %%
 cmd_line    :
-	BYE END 		                {exit(1);					return 1; }
-	| WIPE END						{wipe();					return 1; }
-	| PWD END						{runPWD();					return 1; } 
-	| HOME END						{runCD(varTable.word[1]);	return 1; }
-	| LS END						{runLSnil();				return 1; }
-	| LS STRING END					{runLS($2);					return 1; }
-	| SETENV STRING STRING END		{runSetenv($2, $3);			return 1; }
-	| UNSETENV STRING END			{runUnsetenv($2);			return 1; } 
-	| PRINTENV END					{runPrintenv();				return 1; } 
-	| CD END						{runCDnil();				return 1; }
-	| CD STRING END        			{runCD($2);					return 1; }
-	| CD STRING STRING END			{runCDspc($2, $3);			return 1; }
-	| UNALIAS STRING  END			{runUnalias($2);			return 1; } 
-	| ALIAS END						{runPrintAlias();			return 1; }
-	| ALIAS STRING STRING END		{runSetAlias($2, $3);		return 1; }
-	| VARIABLE END 					{runVariable();				return 1; } 
+	BYE END 		                {exit(1);		return 1; }
+	| WIPE END				{wipe();		return 1; }
+	| PWD END				{runPWD();		return 1; } 
+	| HOME END				{runCD(varTable.word[1]);return 1; }
+	| LS END				{runLSnil();		return 1; }
+	| LS STRING END				{runLS($2);		return 1; }
+	| SETENV STRING STRING END		{runSetenv($2, $3);	return 1; }
+	| UNSETENV STRING END			{runUnsetenv($2);	return 1; } 
+	| PRINTENV END				{runPrintenv();		return 1; } 
+	| CD END				{runCDnil();		return 1; }
+	| CD STRING END        			{runCD($2);		return 1; }
+	| CD STRING STRING END			{runCDspc($2, $3);	return 1; }
+	| UNALIAS STRING  END			{runUnalias($2);	return 1; } 
+	| ALIAS END				{runPrintAlias();	return 1; }
+	| ALIAS STRING STRING END		{runSetAlias($2, $3);	return 1; }
+ 	| COMMAND END				{runCommand($1);	return 1; }
 
 
 %%
@@ -374,9 +374,62 @@ int runPrintenv() {
   return 1;
 }
 
-int runVariable( ) {
-//need to check the environment 
-// plug in into the first variable 
-printf("Hello there \n"); 
-return 1;
+
+int runCommand(char* name){
+	printf("Here it is %s\n", name);
+	return 1;
 }
+
+int runGlobal(char* name){
+	printf("Runinng glob, string is %s\n", name);
+	glob_t globbuf;
+           globbuf.gl_offs = 1;
+           glob(name, GLOB_DOOFFS, NULL, &globbuf);
+           globbuf.gl_pathv[0] = "ls";
+
+
+	 pid_t  pid;
+     int    status;
+     
+     if ((pid = fork()) < 0) {     /* fork a child process           */
+          printf("*** ERROR: forking child process failed\n");
+          exit(1);
+     }
+     else if (pid == 0) {          /* for the child process:         */
+          if (execvp("ls", &globbuf.gl_pathv[0]) < 0) {     /* execute the command  */
+               printf("*** ERROR: exec failed\n");
+               exit(1);
+          }
+     }
+     else {                                  /* for the parent:      */
+          while (wait(&status) != pid);
+     }
+
+
+
+/*
+           //globbuf.gl_pathv[1] = "-l";
+    printf("Creating another process using fork()...\n");
+	wait(NULL);
+    if (fork() == 0) {
+        // Newly spawned child Process. This will be taken over by "ls"
+        int status_code = execvp("ls", &globbuf.gl_pathv[0]);
+
+		exit(0); 
+        if (status_code == -1) {
+            printf("Terminated Incorrectly\n");
+            return 1;
+        }
+    }
+    else {
+        // Old Parent process. The C program will come here
+        printf("back to parent\n");
+    }
+ */
+
+return 1; 
+
+
+
+            
+ }
