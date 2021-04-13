@@ -37,7 +37,7 @@ int runVariable();
 %union {char *string;}
 
 %start cmd_line
-%token <string> WIPE BYE PWD HOME LS SETENV UNSETENV PRINTENV CD STRING ALIAS UNALIAS COMMAND END
+%token <string> WIPE BYE PWD HOME LS SETENV UNSETENV PRINTENV CD STRING ALIAS UNALIAS COMMAND CHECK END
 
 %%
 cmd_line    :
@@ -57,6 +57,7 @@ cmd_line    :
 	| ALIAS END				{runPrintAlias();	return 1; }
 	| ALIAS STRING STRING END		{runSetAlias($2, $3);	return 1; }
  	| COMMAND END				{runCommand($1);	return 1; }
+	| CHECK STRING END				{runGlobal($2);				return 1; }
 
 
 %%
