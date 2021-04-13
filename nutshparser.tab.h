@@ -53,16 +53,17 @@ extern int yydebug;
     BYE = 259,
     PWD = 260,
     HOME = 261,
-    LS = 262,
+    GEN = 262,
     SETENV = 263,
     UNSETENV = 264,
     PRINTENV = 265,
-    VARIABLE = 266,
-    CD = 267,
-    STRING = 268,
-    ALIAS = 269,
-    UNALIAS = 270,
-    END = 271
+    CD = 266,
+    STRING = 267,
+    ALIAS = 268,
+    UNALIAS = 269,
+    COMMAND = 270,
+    CHECK = 271,
+    END = 272
   };
 #endif
 
@@ -70,10 +71,10 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 39 "nutshparser.y"
+#line 11 "nutshparser.y"
 char *string;
 
-#line 77 "nutshparser.tab.h"
+#line 78 "nutshparser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

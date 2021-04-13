@@ -1,5 +1,3 @@
-// This is ONLY a demo micro-shell whose purpose is to illustrate the need for and how to handle nested alias substitutions and Flex start conditions.
-// This is to help students learn these specific capabilities, the code is by far not a complete nutshell by any means.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,9 +23,9 @@ int main()
     char cwd[PATH_MAX];
     getcwd(cwd, sizeof(cwd));
 
-    strcpy(varTable.var[varIndex], "PWD");      // 0
-    strcpy(varTable.word[varIndex], cwd);
-    varIndex++;
+    strcpy(varTable.var[varIndex], "PWD");      // 0  * Pretty sure this isn't actually used...
+    strcpy(varTable.word[varIndex], cwd);       //      but, all the other varIndices count on this = 0
+    varIndex++;                                 //      Can't really kill, because something might loop this
     strcpy(varTable.var[varIndex], "HOME");     // 1
     strcpy(varTable.word[varIndex], cwd);
     varIndex++;
@@ -35,24 +33,26 @@ int main()
     strcpy(varTable.word[varIndex], "$");
     varIndex++;
     strcpy(varTable.var[varIndex], "PATH");     // 3
-    strcpy(varTable.word[varIndex], ".:/usr/bin:/usr:/mnt/c/Users:/mnt/c/Users/Caine Winters/Documents");
+    strcpy(varTable.word[varIndex], ".:/bin");
+    // Need to remove the line below (hard coding location of non-built-in commands)
+    strcat(varTable.word[varIndex], ":/usr/bin"); // *this, this is the line to kill
+    varIndex++;
+    strcpy(varTable.var[varIndex], ".");
+    strcpy(varTable.word[varIndex], cwd);       // 4
     varIndex++;
 
-    strcpy(aliasTable.name[aliasIndex], ".");   // 0 initializes current working dir
-    strcpy(aliasTable.word[aliasIndex], cwd);
-    aliasIndex++;
-
-    char *pointer = strrchr(cwd, '/');
-    while(*pointer != '\0') {
-        *pointer ='\0';
+    char* pointer = strrchr(cwd, '/');
+    while (*pointer != '\0') 
+    {
+        *pointer = '\0';
         pointer++;
     }
-    strcpy(aliasTable.name[aliasIndex], "..");  // 1 initializes current parent directory
-    strcpy(aliasTable.word[aliasIndex], cwd);
-    aliasIndex++;
+    strcpy(varTable.var[varIndex], "..");
+    strcpy(varTable.word[varIndex], cwd);       // 5
+    varIndex++;
 
     char* userName = getenv("USER");
-    //system("clear");
+    //system("clear");  // Need to uncomment this for submission
     printf("\n****************************************\n");
     printf("*                                      *\n");
     printf("* SSSSSssssstarting the NuttyShell!!!! *\n");

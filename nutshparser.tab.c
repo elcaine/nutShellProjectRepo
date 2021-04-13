@@ -68,43 +68,15 @@
 /* First part of user prologue.  */
 #line 1 "nutshparser.y"
 
-// This is ONLY a demo micro-shell whose purpose is to illustrate the need for and how to handle nested alias substitutions and Flex start conditions.
-// This is to help students learn these specific capabilities, the code is by far not a complete nutshell by any means.
-// Only "alias name word", "cd word", and "bye" run. 
-#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include "global.h"
-#include <dirent.h> 
-#include <errno.h>
-#include <stdbool.h>
-//
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <assert.h>
+#include "thisHalf.h"
+#include "thatHalf.h"
 
-int wipe();
 int yylex();
-int yyerror(char *s);
-int runCDnil();
-int runCD(char* arg);
-int runCDspc(char* arg1, char* arg2);
-int runSetAlias(char *name, char *word);
-int runPWD();
-int runLSnil();
-int runLS(char* name);
-int runSetenv(const char* name, const char* value);
-int runUnsetenv(const char* name);
-int runPrintenv();
-int runPrintAlias();
-// more
-int runUnalias(char* name);
-int runVariable();
-int wait(int);
 
-#line 108 "nutshparser.tab.c"
+
+#line 80 "nutshparser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -156,16 +128,17 @@ extern int yydebug;
     BYE = 259,
     PWD = 260,
     HOME = 261,
-    LS = 262,
+    GEN = 262,
     SETENV = 263,
     UNSETENV = 264,
     PRINTENV = 265,
-    VARIABLE = 266,
-    CD = 267,
-    STRING = 268,
-    ALIAS = 269,
-    UNALIAS = 270,
-    END = 271
+    CD = 266,
+    STRING = 267,
+    ALIAS = 268,
+    UNALIAS = 269,
+    COMMAND = 270,
+    CHECK = 271,
+    END = 272
   };
 #endif
 
@@ -173,10 +146,10 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 39 "nutshparser.y"
+#line 11 "nutshparser.y"
 char *string;
 
-#line 180 "nutshparser.tab.c"
+#line 153 "nutshparser.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -493,21 +466,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  29
+#define YYFINAL  30
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   38
+#define YYLAST   44
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  17
+#define YYNTOKENS  18
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  2
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  17
+#define YYNRULES  18
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  40
+#define YYNSTATES  44
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   271
+#define YYMAXUTOK   272
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -546,15 +519,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16
+      15,    16,    17
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    46,    46,    47,    48,    49,    50,    51,    52,    53,
-      54,    55,    56,    57,    58,    59,    60,    61
+       0,    18,    18,    19,    20,    21,    22,    23,    24,    25,
+      26,    27,    28,    29,    30,    31,    32,    33,    34
 };
 #endif
 
@@ -563,9 +536,9 @@ static const yytype_int8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "WIPE", "BYE", "PWD", "HOME", "LS",
-  "SETENV", "UNSETENV", "PRINTENV", "VARIABLE", "CD", "STRING", "ALIAS",
-  "UNALIAS", "END", "$accept", "cmd_line", YY_NULLPTR
+  "$end", "error", "$undefined", "WIPE", "BYE", "PWD", "HOME", "GEN",
+  "SETENV", "UNSETENV", "PRINTENV", "CD", "STRING", "ALIAS", "UNALIAS",
+  "COMMAND", "CHECK", "END", "$accept", "cmd_line", YY_NULLPTR
 };
 #endif
 
@@ -575,11 +548,11 @@ static const char *const yytname[] =
 static const yytype_int16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271
+     265,   266,   267,   268,   269,   270,   271,   272
 };
 # endif
 
-#define YYPACT_NINF (-7)
+#define YYPACT_NINF (-9)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -593,10 +566,11 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -3,    -6,     4,     5,     7,     0,    11,    12,    10,    13,
-       1,     2,    14,    28,    -7,    -7,    -7,    -7,    15,    -7,
-      17,    16,    -7,    -7,     6,    -7,    20,    -7,    18,    -7,
-      -7,    19,    -7,    21,    -7,    22,    -7,    -7,    -7,    -7
+      -3,    -8,     1,     6,     7,    13,    14,    15,    11,     2,
+       3,    17,    16,    18,    31,    -9,    -9,    -9,    -9,     4,
+      20,    19,    -9,     5,    -9,    22,    -9,    21,    -9,    23,
+      -9,    24,    -9,    25,    -9,    26,    -9,    27,    -9,    -9,
+      -9,    -9,    -9,    -9
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -605,21 +579,22 @@ static const yytype_int8 yypact[] =
 static const yytype_int8 yydefact[] =
 {
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     3,     2,     4,     5,     0,     6,
-       0,     0,    10,    17,     0,    11,     0,    15,     0,     1,
-       7,     0,     9,     0,    12,     0,    14,     8,    13,    16
+       0,     0,     0,     0,     0,     3,     2,     4,     5,     0,
+       0,     0,    10,     0,    11,     0,    15,     0,    17,     0,
+       1,     0,     6,     0,     9,     0,    12,     0,    14,    18,
+       7,     8,    13,    16
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -7,    -7
+      -9,    -9
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,    13
+      -1,    14
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -627,18 +602,20 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       1,     2,     3,     4,     5,     6,     7,     8,     9,    10,
-      14,    11,    12,    18,    24,    26,    19,    25,    27,    33,
-      15,    16,    34,    17,    20,    21,    22,    28,    29,    23,
-      31,    30,    32,    35,    36,    37,     0,    38,    39
+       1,     2,     3,     4,     5,     6,     7,     8,     9,    15,
+      10,    11,    12,    13,    23,    25,    31,    35,    16,    24,
+      26,    32,    36,    17,    18,    19,    20,    21,    22,    27,
+      29,    30,    33,    28,    37,     0,    34,     0,    38,     0,
+      39,    40,    41,    42,    43
 };
 
 static const yytype_int8 yycheck[] =
 {
-       3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      16,    14,    15,    13,    13,    13,    16,    16,    16,    13,
-      16,    16,    16,    16,    13,    13,    16,    13,     0,    16,
-      13,    16,    16,    13,    16,    16,    -1,    16,    16
+       3,     4,     5,     6,     7,     8,     9,    10,    11,    17,
+      13,    14,    15,    16,    12,    12,    12,    12,    17,    17,
+      17,    17,    17,    17,    17,    12,    12,    12,    17,    12,
+      12,     0,    12,    17,    12,    -1,    17,    -1,    17,    -1,
+      17,    17,    17,    17,    17
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -646,23 +623,24 @@ static const yytype_int8 yycheck[] =
 static const yytype_int8 yystos[] =
 {
        0,     3,     4,     5,     6,     7,     8,     9,    10,    11,
-      12,    14,    15,    18,    16,    16,    16,    16,    13,    16,
-      13,    13,    16,    16,    13,    16,    13,    16,    13,     0,
-      16,    13,    16,    13,    16,    13,    16,    16,    16,    16
+      13,    14,    15,    16,    19,    17,    17,    17,    17,    12,
+      12,    12,    17,    12,    17,    12,    17,    12,    17,    12,
+       0,    12,    17,    12,    17,    12,    17,    12,    17,    17,
+      17,    17,    17,    17
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    17,    18,    18,    18,    18,    18,    18,    18,    18,
-      18,    18,    18,    18,    18,    18,    18,    18
+       0,    18,    19,    19,    19,    19,    19,    19,    19,    19,
+      19,    19,    19,    19,    19,    19,    19,    19,    19
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     2,     2,     2,     2,     2,     3,     4,     3,
-       2,     2,     3,     4,     3,     2,     4,     2
+       0,     2,     2,     2,     2,     2,     3,     4,     4,     3,
+       2,     2,     3,     4,     3,     2,     4,     2,     3
 };
 
 
@@ -1358,103 +1336,109 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 46 "nutshparser.y"
+#line 18 "nutshparser.y"
                                                 {exit(1);					return 1; }
-#line 1364 "nutshparser.tab.c"
+#line 1342 "nutshparser.tab.c"
     break;
 
   case 3:
-#line 47 "nutshparser.y"
+#line 19 "nutshparser.y"
                                                                 {wipe();					return 1; }
-#line 1370 "nutshparser.tab.c"
+#line 1348 "nutshparser.tab.c"
     break;
 
   case 4:
-#line 48 "nutshparser.y"
+#line 20 "nutshparser.y"
                                                                 {runPWD();					return 1; }
-#line 1376 "nutshparser.tab.c"
+#line 1354 "nutshparser.tab.c"
     break;
 
   case 5:
-#line 49 "nutshparser.y"
+#line 21 "nutshparser.y"
                                                                 {runCD(varTable.word[1]);	return 1; }
-#line 1382 "nutshparser.tab.c"
+#line 1360 "nutshparser.tab.c"
     break;
 
   case 6:
-#line 50 "nutshparser.y"
-                                                                {runLSnil();				return 1; }
-#line 1388 "nutshparser.tab.c"
+#line 22 "nutshparser.y"
+                                                        {genCommandNil((yyvsp[-1].string));			return 1; }
+#line 1366 "nutshparser.tab.c"
     break;
 
   case 7:
-#line 51 "nutshparser.y"
-                                                        {runLS((yyvsp[-1].string));					return 1; }
-#line 1394 "nutshparser.tab.c"
+#line 23 "nutshparser.y"
+                                                {genCommand((yyvsp[-2].string), (yyvsp[-1].string));		return 1; }
+#line 1372 "nutshparser.tab.c"
     break;
 
   case 8:
-#line 52 "nutshparser.y"
+#line 24 "nutshparser.y"
                                                 {runSetenv((yyvsp[-2].string), (yyvsp[-1].string));			return 1; }
-#line 1400 "nutshparser.tab.c"
+#line 1378 "nutshparser.tab.c"
     break;
 
   case 9:
-#line 53 "nutshparser.y"
+#line 25 "nutshparser.y"
                                                 {runUnsetenv((yyvsp[-1].string));			return 1; }
-#line 1406 "nutshparser.tab.c"
+#line 1384 "nutshparser.tab.c"
     break;
 
   case 10:
-#line 54 "nutshparser.y"
+#line 26 "nutshparser.y"
                                                         {runPrintenv();				return 1; }
-#line 1412 "nutshparser.tab.c"
+#line 1390 "nutshparser.tab.c"
     break;
 
   case 11:
-#line 55 "nutshparser.y"
+#line 27 "nutshparser.y"
                                                                 {runCDnil();				return 1; }
-#line 1418 "nutshparser.tab.c"
+#line 1396 "nutshparser.tab.c"
     break;
 
   case 12:
-#line 56 "nutshparser.y"
+#line 28 "nutshparser.y"
                                                 {runCD((yyvsp[-1].string));					return 1; }
-#line 1424 "nutshparser.tab.c"
+#line 1402 "nutshparser.tab.c"
     break;
 
   case 13:
-#line 57 "nutshparser.y"
+#line 29 "nutshparser.y"
                                                 {runCDspc((yyvsp[-2].string), (yyvsp[-1].string));			return 1; }
-#line 1430 "nutshparser.tab.c"
+#line 1408 "nutshparser.tab.c"
     break;
 
   case 14:
-#line 58 "nutshparser.y"
+#line 30 "nutshparser.y"
                                                 {runUnalias((yyvsp[-1].string));			return 1; }
-#line 1436 "nutshparser.tab.c"
+#line 1414 "nutshparser.tab.c"
     break;
 
   case 15:
-#line 59 "nutshparser.y"
+#line 31 "nutshparser.y"
                                                                 {runPrintAlias();			return 1; }
-#line 1442 "nutshparser.tab.c"
+#line 1420 "nutshparser.tab.c"
     break;
 
   case 16:
-#line 60 "nutshparser.y"
+#line 32 "nutshparser.y"
                                                 {runSetAlias((yyvsp[-2].string), (yyvsp[-1].string));		return 1; }
-#line 1448 "nutshparser.tab.c"
+#line 1426 "nutshparser.tab.c"
     break;
 
   case 17:
-#line 61 "nutshparser.y"
-                                                        {runVariable();				return 1; }
-#line 1454 "nutshparser.tab.c"
+#line 33 "nutshparser.y"
+                                                        {runCommand((yyvsp[-1].string));			return 1; }
+#line 1432 "nutshparser.tab.c"
+    break;
+
+  case 18:
+#line 34 "nutshparser.y"
+                                                        {runGlobal((yyvsp[-1].string));				return 1; }
+#line 1438 "nutshparser.tab.c"
     break;
 
 
-#line 1458 "nutshparser.tab.c"
+#line 1442 "nutshparser.tab.c"
 
       default: break;
     }
@@ -1686,396 +1670,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 64 "nutshparser.y"
+#line 37 "nutshparser.y"
 
-int wipe() {
-		/*
-		for (int i = 0; i < 10000; ++i) {
-			printf("\e[1;1H\e[2J");
-		}//*/
-		system("clear");
-	}
-
-int yyerror(char *s) {
-	printf("yyerror: %s\n",s);
-	return 0;
-  }
-
-// Change Directory (CD) functions to accomodate 3 different args scenarios:  0, 1, or more
-int runCDnil() {
-	runCD(varTable.word[1]);
-	return 1;
-}
-int runCDspc(char* arg1, char* arg2) {
-	strcat(arg1, " ");
-	strcat(arg1, arg2);
-	runCD(arg1);
-	return 1;
-}
-int runCD(char* arg) {
-	if (arg[0] != '/') { // arg is relative path
-		char tmpPathName[PATH_MAX];
-		strcpy(tmpPathName, varTable.word[0]); 
-		strcat(varTable.word[0], "/");
-		strcat(varTable.word[0], arg);
-
-		if(chdir(varTable.word[0]) == 0) {
-			strcpy(aliasTable.word[0], varTable.word[0]);	// sets cwd
-			strcpy(aliasTable.word[1], varTable.word[0]);	// sets dir holding cwd
-			char *pointer = strrchr(aliasTable.word[1], '/');
-			while(*pointer != '\0') {
-				*pointer ='\0';
-				pointer++;
-			}
-		}
-		else {
-			printf("cd: %s: No such file or directory.\n", arg);
-			strcpy(varTable.word[0], tmpPathName); // Replaces cwd with previous valid cwd
-			return 1;
-		}
-	}
-	else { // arg is absolute path
-		if(chdir(arg) == 0){
-			strcpy(varTable.word[0], arg);
-			strcpy(aliasTable.word[0], arg);
-			strcpy(aliasTable.word[1], arg);
-			char *pointer = strrchr(aliasTable.word[1], '/');
-			while(*pointer != '\0') {
-			*pointer ='\0';
-			pointer++;
-			}
-		}
-		else {
-			printf("cd: %s: No such file or directory.\n", arg);
-            return 1;
-		}
-	}
-	return 1;
-}
-
-int runSetAlias(char *name, char *word) {
-	for (int i = 0; i < aliasIndex; i++) {
-		if(strcmp(name, word) == 0){
-			printf("Error, expansion of \"%s\" would create a loop.\n", name);
-			return 1;
-		}
-		else if((strcmp(aliasTable.name[i], name) == 0) && (strcmp(aliasTable.word[i], word) == 0)){
-			printf("Error, expansion of \"%s\" would create a loop.\n", name);
-			return 1;
-		}
-		else if(strcmp(aliasTable.name[i], name) == 0) {
-			strcpy(aliasTable.word[i], word);
-			return 1;
-		}
-	}
-	strcpy(aliasTable.name[aliasIndex], name);
-	strcpy(aliasTable.word[aliasIndex], word);
-	aliasIndex++;
-
-	return 1;
-}
-
-//Prints all aliases 
-int runPrintAlias () {
-for (int i = 1; i < aliasIndex; i++) {
-	if((strcmp(aliasTable.name[i], "") != 0) && (strcmp(aliasTable.name[i], "..") != 0)){ 
-             printf("%s=%s\n", aliasTable.name[i], aliasTable.word[i]);}
-     }
-return 1;
-} 
-
-// Deletes alias
- int runUnalias (char *name) {
-    for (int i = 0; i < aliasIndex; i++) {
-      		   if(strcmp(aliasTable.name[i], name) == 0) {
-				  strcpy(aliasTable.name[i], "");
-				  strcpy(aliasTable.word[i], "");
-   				     		 }
-	}
-	 	return 1;
-}
- 
-
-//Print working directory	***** DOES THIS NEED TO CHANGED??? *******
-int runPWD() {
-	char cwd[PATH_MAX];
-	getcwd(cwd, sizeof(cwd));
-	printf("Current hacker directory: %s\n", cwd);
-	return 1;
-}
-
-//This will need more work but basics is here
-int runLSnil() {
-	runLS(" ");
-	return 1;
-}
-int runLS(char* name)
-{
-	int i1 = 0, i2 = 0;								// Indices 
-	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH
-	char argWords[128][128] = { '\0' };				// Array to hold each directory
-	strcpy(argPtr, varTable.word[3]);
-
-	// *** Remove these printf shits ***
-	printf("===== PARSING PATH INTO DIRECTORY ELEMENTS =====\n");
-	printf("runLS with input parameter (char* name): %s\n", name);
-	printf("PATH from varTable.word[3]: %s\n", varTable.word[3]);
-
-	// Appends each char from the PATH, moving to next string when ':' encountered
-	while (argPtr[i2] != '\0') {
-		if (argPtr[i2] == ':') {
-			++i1;
-		}
-		else {
-			strncat(argWords[i1], &argPtr[i2], 1);
-		}
-		++i2;
-	}
-
-	//  Printf-ing the different directories parsed *** REMOVE ME ***
-	i2 = 0;
-	printf("The colon separated PATH variables after parsing:\n");
-	if (argWords[i2][0] == '\0') {
-		printf("*** SOME KIND OF ERROR HERE (no directories in PATH?) ***\n");
-		return 1;
-	}
-	while (argWords[i2][0] != '\0') {
-		printf("argWords[%d] holds: <%s>\n", i2, argWords[i2]);
-		++i2;
-	}
-
-	// Search for target command within the parsed directories
-	printf("\n\n===== SEARCHING PARSED DIRECTORIES =====\n");
-	DIR* d;
-	struct dirent* dir;
-	bool found = false;
-	for (i2 = 0; i2 <= i1; ++i2) {
-		printf("Now inspectimating dir: %s\n", argWords[i2]);
-		d = opendir(argWords[i2]);
-		if (d) {
-			while ((dir = readdir(d)) != NULL) {
-				if (strcmp(dir->d_name, name) == 0) {
-					//printf("*** WINNER WINNER, CHICKEN DINNER --> %s IS HERE!!!\n", dir->d_name);
-					//printf("%s\n", dir->d_name);
-					found = true;
-				}
-			}
-			closedir(d);
-		}
-		if (found) break;
-	}
-
-	if (i2 > i1) {
-		printf("Command not found, you suck!!!\n");
-		return 1;
-	}
-	else {
-		printf("*** Command %s is in %s ***\n", name, argWords[i2]);
-		printf("So, you found it, WHAT... AN... ACCOMPLISHMENT\tYou must be so proud!\n");
-		strcat(argWords[i2], "/cat"); // * will need to change hard-coded "/ls" to dynamic input
-	}
-
-	// Doing the fork() stuff
-	printf("\n===== STARTING fork() STUFF =====\n");
-	//char tmp[strlen(argWords[i2])];
-	//strcpy(tmp, argWords[i2]);
-	char* tmp = "global.h";			// keep this one for "cat" testing
-	//char* tmp = varTable.word[1];	// keep this one for "ls" testing
-	char* args[] = { argWords[i2], tmp, NULL }; // varTable.word[1] = HOME (for testing ls)
-	pid_t pParent, pChild;
-	/*int f1[2];
-	int f2[2];
-	int f3[2];
-	int f4[2];
-	if (pipe(f1)) { printf("fork Failed"); return 1; }
-	if (pipe(f2)) { printf("fork Failed"); return 1; }
-	if (pipe(f3)) { printf("fork Failed"); return 1; }
-	if (pipe(f4)) { printf("fork Failed"); return 1; }
-	*/
-	pParent = fork();
-
-	if (pParent == 0) { // Child
-		printf("This is the child.  pid: %d\t", getpid());
-		printf("pParent: %d\n", pParent);
-		printf("Here comes the actual execv stuff....\n");
-		execv(argWords[i2], args);	// execv(parameter 1, parameter 2)
-									// 1. char*:	the path/command
-									// 2. char*[]:	parameter 1 is first, rest are opitons, NULL is last element
-	}
-	else {				// Parent (pParent != 0)
-		printf("This is the parent.  pid: %d\t", getpid());
-		printf("pParent: %d\n", pParent);
-		wait(0);
-	}
-	printf("if() completed\n");
-
-	// All of this is trash since LS (and all non-built in commands) should be called from bin
-	/*  
-	struct dirent **namelist; 
-	int n;
-	//n = scandir(".", &namelist, 1, alphasort);
-	n = scandir(".", &namelist, NULL, alphasort);
-
-	if(n < 0) 
-	{ 
-		perror("scandir"); 
-		exit(EXIT_FAILURE); 
-	} 
-	else 
-	{
-		int o = 0;
-		while (o < n) 
-		{ 
-			printf("%s\n", namelist[o]->d_name); 
-			free(namelist[o]);
-			++o;
-		} 
-		free(namelist); 
-	} 
-	//*/
-	;
-	// This too
-	;
-	/*
-	int t = 1, done;
-	int argc = 3;
-	DIR* dir = opendir(name);
-	struct dirent* ent;
-	if (argc < 3)
-	{
-		printf("The correct syntax is ls dirname\n");
-		exit(0);
-	}
-	if ((dir == NULL))  // To check the existence of the directory
-	{
-		perror("Unable to open");
-		exit(1);
-	}
-	if (argc == 3)
-	{
-		dir = opendir(name);
-		while ((ent = readdir(dir)) != NULL)
-		{
-			printf("%s\t", ent->d_name);
-			if ((int)strlen(ent->d_name) < 17)
-				printf("\t");
-
-			if ((int)strlen(ent->d_name) < 5)
-				printf("\t");
-			//printf("size of ent->d_name: *** %d ***  ", (int)strlen(ent->d_name));
-			if (1)
-			{
-				struct stat sbuf;
-				stat(ent->d_name, &sbuf);
-				if (sbuf.st_size == 0)   //Check for empty file
-					printf("d");
-				//Find out the permissions for files and directories
-				if (sbuf.st_mode & S_IREAD)
-					printf("r");
-				else
-					printf("-");
-				
-				if (sbuf.st_mode & S_IWRITE)
-					printf("w");
-				else
-					printf("-");
-				
-				if (sbuf.st_mode & S_IEXEC)
-					printf("x");
-				else
-					printf("-");
-				//Print the size
-				printf("\t%d", (int)sbuf.st_size);
-				//Print the date and time of last modified
-				printf("\t%s", ctime(&sbuf.st_ctime));
-			}
-		}
-		//close(dir);
-	}
-	if (argc == 2)
-	{
-		while ((ent = readdir(dir)) != NULL)
-			printf("%s\n", ent->d_name);
-	}
-	//*/
-	return 1;  
-}
-
-//https://man7.org/tlpi/code/online/dist/proc/setenv.c.html#setenv
-int runSetenv(const char *name, const char *value)
-{
-    char *es;
-
-    if (name == NULL || name[0] == '\0' || strchr(name, '=') != NULL ||
-            value == NULL) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    if (getenv(name) != NULL  )
-        return 0;
-
-    runUnsetenv(name);             /* Remove all occurrences */
-
-    es = malloc(strlen(name) + strlen(value) + 2);
-                                /* +2 for '=' and null terminator */
-    if (es == NULL)
-        return -1;
-
-    strcpy(es, name);
-    strcat(es, "=");
-    strcat(es, value);
-
-    return (putenv(es) != 0) ? -1 : 0;
-}
-
-int runUnsetenv(const char *name)
-{
-    extern char **environ;
-    char **ep, **sp;
-    size_t len;
-
-    if (name == NULL || name[0] == '\0' || strchr(name, '=') != NULL) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    len = strlen(name);
-
-    for (ep = environ; *ep != NULL; )
-        if (strncmp(*ep, name, len) == 0 && (*ep)[len] == '=') {
-
-            /* Remove found entry by shifting all successive entries
-               back one element */
-
-            for (sp = ep; *sp != NULL; sp++)
-                *sp = *(sp + 1);
-
-            /* Continue around the loop to further instances of 'name' */
-
-        } else {
-            ep++;
-        }
-
-    return 0;
-}
-
-extern char **environ; //Global variable of user environment 
-
-//just iterate through it 
-int runPrintenv() {
-  char **s = environ;
-
-  for (; *s; s++) {
-    printf("%s\n", *s);
-  }
-
-  return 1;
-}
-
-int runVariable( ) {
-//need to check the environment 
-// plug in into the first variable 
-printf("Hello there \n"); 
-return 1;
-}
