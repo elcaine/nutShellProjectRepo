@@ -8,6 +8,10 @@
 #include "global.h"
 #include "thisHalf.h"
 
+#define nutRED         "\x1b[31m"
+#define nutGREEN       "\x1b[32m"
+#define nutBLUE        "\x1b[34m"
+
 int wipe() {
 	/*
 	for (int i = 0; i < 10000; ++i) {
@@ -106,10 +110,15 @@ int runCD(char* arg)
 //
 int genCommandNil(char* name)
 {
-	genCommand(name, NULL);
+	genCommand(name, NULL, NULL);
 	return 1;
 }
-int genCommand(char* name, char* fml)
+int genCommandTwo(char* name, char* fml)
+{
+	genCommand(name, fml, NULL);
+	return 1;
+}
+int genCommand(char* name, char* fml, char* die)
 {
 	int i1 = 0, i2 = 0;								// Indices 
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH // *I think the +1 can go
@@ -123,8 +132,11 @@ int genCommand(char* name, char* fml)
 	printf("genCommand with input parameters (char* name), (char* fml): %s, %s\n", name, fml);
 	printf("Raw PATH string from varTable.word[3]: %s\n", varTable.word[3]);
 
-	// Makes current directory the first directory of the directories array
-	strcpy(argWords[i1++], varTable.word[4]); // This is clunky.  Should "." automate this somehow?
+	// Makes current directory the first directory of the directories array only if command leads with '/'
+	if (argPtr[0] == '/') // This is clunky.  Should "." automate this somehow?
+	{
+		strcpy(argWords[i1++], varTable.word[4]);
+	}
 	// Appends each char from the raw PATH string, moving to next string when ':' encountered
 	while (argPtr[i2] != '\0')
 	{
@@ -190,7 +202,11 @@ int genCommand(char* name, char* fml)
 
 	// Doing the fork() stuff
 	printf("\n===== STARTING fork() STUFF =====\n");
-	char* args[] = { argWords[i2], fml, NULL }; // varTable.word[1] = HOME (for testing ls)
+	/*
+	* CAINE.....   See about maybe making a large paramater'd genCommand to catch a lot of args.
+	* (would be nice if genCommand could receive just 2 args: STRING:command-name, [ARRAY]:argument-arguments)
+	*/
+	char* args[] = { argWords[i2], fml, die, NULL }; // varTable.word[1] = HOME (for testing ls)
 	pid_t pParent, pChild;
 
 	// Crap below was coppied from lab 5... just in case part of it needed to be mimicked
@@ -209,20 +225,23 @@ int genCommand(char* name, char* fml)
 	if (pParent != 0)	// Parent
 	{
 		printf("This is the parent.  pid: %d\t", getpid());
-		printf("pParent: %d\n", pParent);
+		printf("parent's parent: %d\n", pParent);
 		wait(0);
 
 	}
 	else				// Child
 	{
 		printf("This is the child.  pid: %d\t", getpid());
-		printf("pParent: %d\n", pParent);
-		printf("\n===== COMMAND <%s> EXECUTED VIA EXECV (results below) =====\n", name);
+		printf("Child's parent: %d\n", pParent);
+		printf("\n===== COMMAND <%s> EXECUTED VIA EXECV (", name);
+		printf(nutRED "results " nutGREEN);
+		printf("below) =====");
+		printf(nutRED "\n");
 		execv(argWords[i2], args);	// execv(parameter 1, parameter 2)
 									// 1. char*:	the path/command
 									// 2. char*[]:	parameter 1 is first, rest are opitons, NULL must be last element
 	}
-	printf("*** End of results from command <%s> execution ****\n", name);
+	printf(nutGREEN "*** End of results from command <%s> execution ****\n", name);
 	printf("\n===== END OF NON-BUILT-IN COMMAND <%s> =====\n", name);
 
 	return 1;

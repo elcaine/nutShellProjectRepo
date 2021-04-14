@@ -15,5 +15,6 @@ extern int wait(int);
 
 // will need to remove/merge your runCommand with my genCommand
 int genCommandNil(char* name);
-int genCommand(char* name, char* fml);
+int genCommandTwo(char* name, char* fml);
+int genCommand(char* name, char* fml, char* die);
 #endif

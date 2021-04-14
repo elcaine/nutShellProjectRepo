@@ -146,19 +146,6 @@ int runPrintenv() {
 	return 1;
 }
 
-int runCommandNil(char* name) {
-	printf("Here it is %s\t", name);
-	genCommand(name, NULL);
-	return 1;
-}
-
-int runCommand(char* name, char* fml) {
-	printf("Here it is %s\t", name);
-	printf("fml is: %s\n", fml);
-	genCommand(name, fml);
-	return 1;
-}
-
 int runGlobal(char* name) {
 	/*
 	printf("Runinng glob, string is %s\n", name);

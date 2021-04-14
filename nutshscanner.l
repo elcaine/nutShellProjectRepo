@@ -13,6 +13,12 @@
 #include <assert.h>
 #include "nutshparser.tab.h"
 #include "global.h"
+
+#define nutRED         "\x1b[31m"
+#define nutGREEN       "\x1b[32m"
+#define nutBLUE        "\x1b[34m"
+#define nutYELLOW      "\x1b[33m"
+
 int counter = 0; 
  
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
@@ -59,10 +65,14 @@ bool ifNonBuild(char* name) {
 	strcpy(argPtr, varTable.word[3]);
 
 	// *** Remove these printf shits ***
-	//printf("===== PARSING PATH INTO DIRECTORY ELEMENTS =====\n");
-	//printf("runLS with input parameter (char* name): %s\n", name);
+	printf("===== ENTERING ifNonBuild QUALIFIER =====\n");
+	printf("Command name being checked in ifNonBuild: ");
+	printf(nutRED "%s", name);
+	printf(nutBLUE "\n");
 	//printf("PATH from varTable.word[3]: %s\n", varTable.word[3]);
 
+	// Makes current directory the first directory of the directories array
+	strcpy(argWords[i1++], varTable.word[4]); // This is clunky.  Should "." automate this somehow?
 	// Appends each char from the PATH, moving to next string when ':' encountered
 	while (argPtr[i2] != '\0') {
 		if (argPtr[i2] == ':') {
@@ -114,7 +124,7 @@ bool ifNonBuild(char* name) {
 	else {
 		//	printf("*** Command %s is in %s ***\n", name, argWords[i2]);
 		//	printf("So, you found it, WHAT... AN... ACCOMPLISHMENT\tYou must be so proud!\n");
-		strcat(argWords[i2], "/cat"); // * will need to change hard-coded "/ls" to 
+		//strcat(argWords[i2], "/cat"); // * will need to change hard-coded "/ls" to 
 		return true;
 	}
 }
@@ -153,13 +163,13 @@ wipe        { return WIPE; }
 bye         { return BYE; }
 home        { return HOME; }
 pwd			{ return PWD; } 
-gen			{ return GEN; }
 setenv		{ return SETENV; }
 unsetenv	{ return UNSETENV; }
 printenv	{ return PRINTENV; }			
 cd		    { counter ++; return CD;}
 unalias		{ counter ++; return UNALIAS; }
 alias		{ counter ++; return ALIAS; }
+gen			{ return GEN; }
 "\n"		{ return END; }
 [\"]       	{ BEGIN (string_condition); }
 "${"		{ BEGIN (variable_condition); }
@@ -176,6 +186,7 @@ alias		{ counter ++; return ALIAS; }
 
 
 {CHAR}+ {
+	printf(nutBLUE "===== {CHAR}+ STUFF =====\n");
 	if (ifAlias(yytext) && counter == 0)
 	{
 		printf("alias before substitute: %s\n", yytext);
@@ -184,14 +195,18 @@ alias		{ counter ++; return ALIAS; }
 			unput(yycopy[i]);
 		free(yycopy);
 	}
-	if (ifNonBuild(yytext) ) {
-		printf("here we go sub: %s\n", yytext);
+	if (ifNonBuild(yytext) && counter == 0)
+	{
+		printf("ifNonBuild returned TRUE with this command: ");
+		printf(nutRED "%s", yytext);
+		printf(nutGREEN "\n");
 		yylval.string = strdup(yytext);
-		return COMMAND;
+		return GEN;
 	}
 	else
 	{
 		//printf("string is: %s\n", yytext);
+		printf(nutGREEN);
 		yylval.string = strdup(yytext);
 		counter = 0;
 		return STRING;

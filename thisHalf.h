@@ -8,7 +8,8 @@ int runCD(char* arg);
 int runCDspc(char* arg1, char* arg2);
 int runPWD();
 int genCommandNil(char* name);
-int genCommand(char* name, char* fml);
+int genCommandTwo(char* name, char* fml);
+int genCommand(char* name, char* fml, char* die);
 extern int wait(int);
 
 #endif
