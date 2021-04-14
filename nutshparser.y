@@ -30,7 +30,8 @@ cmd_line    :
 	| UNALIAS STRING  END			{runUnalias($2);			return 1; } 
 	| ALIAS END						{runPrintAlias();			return 1; }
 	| ALIAS STRING STRING END		{runSetAlias($2, $3);		return 1; }
-	| COMMAND END					{runCommand($1);			return 1; }
+	| COMMAND STRING END			{runCommand($1, $2);		return 1; }
+	| COMMAND END					{runCommandNil($1);			return 1; }
 	| CHECK STRING END				{runGlobal($2);				return 1; }
 
 

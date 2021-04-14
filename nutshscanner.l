@@ -158,8 +158,8 @@ setenv		{ return SETENV; }
 unsetenv	{ return UNSETENV; }
 printenv	{ return PRINTENV; }			
 cd		    { counter ++; return CD;}
-unalias		{  counter ++; return UNALIAS; }
-alias		{  counter ++; return ALIAS; }
+unalias		{ counter ++; return UNALIAS; }
+alias		{ counter ++; return ALIAS; }
 "\n"		{ return END; }
 [\"]       	{ BEGIN (string_condition); }
 "${"		{ BEGIN (variable_condition); }
@@ -184,7 +184,7 @@ alias		{  counter ++; return ALIAS; }
 			unput(yycopy[i]);
 		free(yycopy);
 	}
-	if (ifNonBuild(yytext) && counter == 0) {
+	if (ifNonBuild(yytext) ) {
 		printf("here we go sub: %s\n", yytext);
 		yylval.string = strdup(yytext);
 		return COMMAND;
