@@ -129,8 +129,8 @@ int genCommand(char* name, char* fml, char* die)
 	printf("\n===== NON-BUILT-IN COMMAND <%s> RECEIVED FOR US TO DEAL WITH =====\n\n", name);
 
 	printf("===== PARSING PATH INTO DIRECTORY ELEMENTS =====\n");
-	printf("genCommand with input parameters (char* name), (char* fml): %s, %s\n", name, fml);
-	printf("Raw PATH string from varTable.word[3]: %s\n", varTable.word[3]);
+	printf("genCommand with input parameters *name: <%s>, *fml: <%s>, *die: <%s>\n", name, fml, die);
+	printf("Raw PATH string from varTable.word[3] found in directory: [%s]\n", varTable.word[3]);
 
 	// Makes current directory the first directory of the directories array only if command leads with '/'
 	if (argPtr[0] == '/') // This is clunky.  Should "." automate this somehow?
@@ -207,39 +207,42 @@ int genCommand(char* name, char* fml, char* die)
 	* (would be nice if genCommand could receive just 2 args: STRING:command-name, [ARRAY]:argument-arguments)
 	*/
 	char* args[] = { argWords[i2], fml, die, NULL }; // varTable.word[1] = HOME (for testing ls)
-	pid_t pParent, pChild;
+	pid_t p1, p2;
+	int pipe1[2];
 
 	// Crap below was coppied from lab 5... just in case part of it needed to be mimicked
-	//int f1[2];
 	//int f2[2];
 	//int f3[2];
 	//int f4[2];
-	//if (pipe(f1)) { printf("fork Failed"); return 1; }
 	//if (pipe(f2)) { printf("fork Failed"); return 1; }
 	//if (pipe(f3)) { printf("fork Failed"); return 1; }
 	//if (pipe(f4)) { printf("fork Failed"); return 1; }
 
-
-	pParent = fork();
-
-	if (pParent != 0)	// Parent
+	if (pipe(pipe1) < 0)	{ printf("Pipe did not piped!\n"); return 1; }
+	else { close(pipe1[0]);		close(pipe1[1]); }
+	p1 = fork();
+	
+	if (p1 < 0)				{ printf("Fork did not forked!\n");	exit(0);}
+	else if (p1 == 0)		// Child
 	{
-		printf("This is the parent.  pid: %d\t", getpid());
-		printf("parent's parent: %d\n", pParent);
-		wait(0);
-
-	}
-	else				// Child
-	{
-		printf("This is the child.  pid: %d\t", getpid());
-		printf("Child's parent: %d\n", pParent);
+		// Remove all this printf crap for deliverable
+		printf("This is the child. pid: %d\t", getpid());
+		printf("Child's parent: %d\n", p1);
 		printf("\n===== COMMAND <%s> EXECUTED VIA EXECV (", name);
 		printf(nutRED "results " nutGREEN);
 		printf("below) =====");
 		printf(nutRED "\n");
+		//... end of printf crap
+		//close(pipe1[0]); // Abandoned pipe dreams for now.
 		execv(argWords[i2], args);	// execv(parameter 1, parameter 2)
 									// 1. char*:	the path/command
 									// 2. char*[]:	parameter 1 is first, rest are opitons, NULL must be last element
+	}
+	else					// Parent
+	{
+		printf("This is the parent.  pid: %d\t", getpid());
+		printf("parent's parent: %d\n", p1);
+		wait(0);
 	}
 	printf(nutGREEN "*** End of results from command <%s> execution ****\n", name);
 	printf("\n===== END OF NON-BUILT-IN COMMAND <%s> =====\n", name);

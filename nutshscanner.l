@@ -132,16 +132,13 @@ bool ifNonBuild(char* name) {
 %array
 %option noyywrap
 
-
 CHAR            [.A-Za-z!\/_-][.A-Za-z!\/_-]*
 ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -]*
 
 %x string_condition
 %x variable_condition
 
-
-%%
-    
+%% 
      
 <string_condition>{ANYCHAR}+    { yylval.string = strdup(yytext); return STRING;}
 <string_condition>[\"]          {BEGIN(INITIAL);} 
@@ -155,8 +152,6 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ 
 									else { printf("Error, no such variable"); } }
 <variable_condition>"}"          {BEGIN(INITIAL);} 
 
-
-
 [ ]		    { }
 check		{ return CHECK; }
 wipe        { return WIPE; }
@@ -169,7 +164,6 @@ printenv	{ return PRINTENV; }
 cd		    { counter ++; return CD;}
 unalias		{ counter ++; return UNALIAS; }
 alias		{ counter ++; return ALIAS; }
-gen			{ return GEN; }
 "\n"		{ return END; }
 [\"]       	{ BEGIN (string_condition); }
 "${"		{ BEGIN (variable_condition); }
@@ -181,9 +175,6 @@ gen			{ return GEN; }
 "|"        	{ printf("found a pipe\n" ); }
 "&"        	{ printf("found an amp\n" ); }
 "Count"		{ printf("%d\n", counter); }
-
-
-
 
 {CHAR}+ {
 	printf(nutBLUE "===== {CHAR}+ STUFF =====\n");
