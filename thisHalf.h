@@ -11,5 +11,5 @@ int genCommandNil(char* name);
 int genCommandTwo(char* name, char* fml);
 int genCommand(char* name, char* fml, char* die);
 extern int wait(int);
-
+ 
 #endif
