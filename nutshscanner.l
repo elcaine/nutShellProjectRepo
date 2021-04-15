@@ -1,33 +1,40 @@
 %{
 #include <string.h>
 #include <stdbool.h>
-#include <errno.h>
-#include "global.h"
-#include "nutshparser.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <unistd.h>
 #include <dirent.h> 
+//
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <assert.h>
- int counter = 0; 
+#include "nutshparser.tab.h"
+#include "global.h"
+
+#define nutRED         "\x1b[31m"
+#define nutGREEN       "\x1b[32m"
+#define nutBLUE        "\x1b[34m"
+#define nutYELLOW      "\x1b[33m"
+
+int counter = 0; 
  
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
 //******************* SUBSTITUTE ALIAS *******************
-char* subAliases(char* name){
+char* subAliases(char* name) {
     for (int i = 0; i < aliasIndex; i++) {
-        if(strcmp(aliasTable.name[i], name) == 0) {
+        if (strcmp(aliasTable.name[i], name) == 0) {
             return aliasTable.word[i];
         }
     }
     return name;
 }
 
-bool ifAlias(char* name){
+bool ifAlias(char* name) {
     for (int i = 0; i < aliasIndex; i++) {
-        if(strcmp(aliasTable.name[i], name) == 0) {
+        if (strcmp(aliasTable.name[i], name) == 0) {
             return true;
         }
     }
@@ -35,22 +42,22 @@ bool ifAlias(char* name){
 }
 
 //******************* SUBSTITUTE VARIABLE *******************
-char* subVar(char* name){
-    for (int i = 0; i < varIndex; i++) {
-        if(strcmp(varTable.var[i], name) == 0) {
-            return varTable.word[i];
-        }
-    }
-    return name;
+char* subVar(char* name) {
+	for (int i = 0; i < varIndex; i++) {
+		if (strcmp(varTable.var[i], name) == 0) {
+			return varTable.word[i];
+		}
+	}
+	return name;
 }
 
-bool ifVar(char* name){
-    for (int i = 0; i < varIndex; i++) {
-        if(strcmp(varTable.var[i], name) == 0) {
-            return true;
-        }
-    }
-    return false;
+bool ifVar(char* name) {
+	for (int i = 0; i < varIndex; i++) {
+		if (strcmp(varTable.var[i], name) == 0) {
+			return true;
+		}
+	}
+	return false;
 }
 
 //******************* CHECK IF THE STRING IS A COMMAND *******************
@@ -59,6 +66,15 @@ bool ifNonBuild(char* name) {
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
 	strcpy(argPtr, varTable.word[3]);
+
+	/*/ *** Remove these printf shits ***
+	//
+	printf("===== ENTERING ifNonBuild QUALIFIER =====\n");
+	printf("Command name being checked in ifNonBuild: ");
+	printf(nutRED "%s", name);
+	printf(nutBLUE "\n");
+	//*/
+	//printf("PATH from varTable.word[3]: %s\n", varTable.word[3]);
 
 	// Makes current directory the first directory of the directories array
 	strcpy(argWords[i1++], varTable.word[4]); // This is clunky.  Should "." automate this somehow?
@@ -117,81 +133,84 @@ bool ifNonBuild(char* name) {
 		return true;
 	}
 }
-
-
 %}
 %array
 %option noyywrap
 
-
-CHAR            [>:*?.A-Za-z!\/_-][.A-Za-z!\/_-]*
+CHAR            [.A-Za-z!\/_-][.A-Za-z!\/_-]*
 ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -]*
 
 %x string_condition
 %x variable_condition
 
-
-%%
-    
+%% 
      
-<string_condition>{ANYCHAR}+     { yylval.string = strdup(yytext); counter = 0; return STRING;}
-<string_condition>[\"]           {BEGIN(INITIAL);} 
+<string_condition>{ANYCHAR}+    { yylval.string = strdup(yytext); return STRING;}
+<string_condition>[\"]          {BEGIN(INITIAL);} 
 
-<variable_condition>{ANYCHAR}+   { if(ifVar(yytext)){
- 			 yylval.string = strdup( subVar(yytext)); 
-			 counter = 0;
- 			 return STRING;}
-				else{ printf("Error, no such variable");} }
+<variable_condition>{ANYCHAR}+	{
+									if(ifVar(yytext))
+									{
+										yylval.string = strdup(subVar(yytext));
+										printf("%s\n", yylval.string); return STRING;
+									}
+									else { printf("Error, no such variable"); } }
 <variable_condition>"}"          {BEGIN(INITIAL);} 
 
- 
-
-
 [ ]		    { }
-check 		{return CHECK;}
 wipe        { return WIPE; }
 bye         { return BYE; }
 home        { return HOME; }
 pwd			{ return PWD; } 
 setenv		{ return SETENV; }
 unsetenv	{ counter ++; return UNSETENV; }
-pipe 		{ return PIPE;}
-printenv	{  counter ++; return PRINTENV; }			
-cd		    {   counter ++;  return CD;}
-unalias		{  counter ++; return UNALIAS; }
-alias		{   return ALIAS; }
-"\n"		{  return END; }
+pipe		{ return PIPE; }
+printenv	{ return PRINTENV; }			
+cd		    { counter ++; return CD;}
+unalias		{ counter ++; return UNALIAS; }
+alias		{ counter ++; return ALIAS; }
+"\n"		{ return END; }
 [\"]       	{ BEGIN (string_condition); }
 "${"		{ BEGIN (variable_condition); }
 "Count"		{ printf("%d\n", counter); }
 
+{CHAR}+ {
+	/* Stuff below removed from Master merge, just holding here
+[0-9]+     	{ printf("found an integer, = %d\n",atoi( yytext ) ); }
+"$"        	{ printf("found a dollar sign\n" ); }
+"{"		    { printf("found a curly brace\n" ); }
+"|"        	{ printf("found a pipe\n" ); }
+"&"        	{ printf("found an amp\n" ); }
 
-
-
-{CHAR}+     {
-                if(ifAlias(yytext) && counter == 0) 
-                {
-                   // printf("alias before substitute: %s\n", yytext);
-                   char *yycopy = strdup( subAliases(yytext) );
-                   for ( int i = strlen(subAliases(yytext)) - 1; i >= 0; --i )
-                       unput( yycopy[i] );
-                   free( yycopy );
-                } 
-		          if(ifNonBuild(yytext) && counter == 0) {
-			       // printf("here we go sub: %s\n", yytext);
-                    yylval.string = strdup(yytext);
-					 counter ++;
-                    return GEN;
-                }  
-                else 
-                {
-                   //printf("string is: %s\n", yytext);
-                   yylval.string = strdup(yytext);
-				   counter = 0;
-                   return STRING;
-                };
-            }
+Added line:	pipe 		{ return PIPE;}
+Chngd line: unsetenv had "counter ++" added"  ...  Thinking the space between is a problem (Daniel 4/15)
+	*/
+	//printf(nutBLUE "===== {CHAR}+ STUFF =====\n");
+	if (ifAlias(yytext) && counter == 0)
+	{
+		printf("alias before substitute: %s\n", yytext);
+		char* yycopy = strdup(subAliases(yytext));
+		for (int i = strlen(subAliases(yytext)) - 1; i >= 0; --i)
+			unput(yycopy[i]);
+		free(yycopy);
+	}
+	if (ifNonBuild(yytext) && counter == 0)
+	{
+		//printf("ifNonBuild returned TRUE with this command: ");
+		//printf(nutRED "%s", yytext);
+		//printf(nutGREEN "\n");
+		yylval.string = strdup(yytext);
+		return GEN;
+	}
+	else
+	{
+		//printf("string is: %s\n", yytext);
+		printf(nutGREEN);
+		yylval.string = strdup(yytext);
+		counter = 0;
+		return STRING;
+	};
+}
 
 %%
-
- // source: https://www.cs.princeton.edu/~appel/modern/c/software/flex/flex.html
+// source: https://www.cs.princeton.edu/~appel/modern/c/software/flex/flex.html
