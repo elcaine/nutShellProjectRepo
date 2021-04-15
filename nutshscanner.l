@@ -151,8 +151,10 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ 
 <variable_condition>{ANYCHAR}+	{
 									if(ifVar(yytext))
 									{
+										 
 										yylval.string = strdup(subVar(yytext));
-										printf("%s\n", yylval.string); return STRING;
+										printf("%s\n", yylval.string);
+										 return STRING; 
 									}
 									else { printf("Error, no such variable"); } }
 <variable_condition>"}"          {BEGIN(INITIAL);} 
@@ -173,22 +175,13 @@ alias		{ counter ++; return ALIAS; }
 [\"]       	{ BEGIN (string_condition); }
 "${"		{ BEGIN (variable_condition); }
 "Count"		{ printf("%d\n", counter); }
+<<EOF>>     { return END_OF_FILE;}
 
 {CHAR}+ {
-	/* Stuff below removed from Master merge, just holding here
-[0-9]+     	{ printf("found an integer, = %d\n",atoi( yytext ) ); }
-"$"        	{ printf("found a dollar sign\n" ); }
-"{"		    { printf("found a curly brace\n" ); }
-"|"        	{ printf("found a pipe\n" ); }
-"&"        	{ printf("found an amp\n" ); }
-
-Added line:	pipe 		{ return PIPE;}
-Chngd line: unsetenv had "counter ++" added"  ...  Thinking the space between is a problem (Daniel 4/15)
-	*/
-	//printf(nutBLUE "===== {CHAR}+ STUFF =====\n");
+	 
 	if (ifAlias(yytext) && counter == 0)
 	{
-		printf("alias before substitute: %s\n", yytext);
+		//printf("alias before substitute: %s\n", yytext);
 		char* yycopy = strdup(subAliases(yytext));
 		for (int i = strlen(subAliases(yytext)) - 1; i >= 0; --i)
 			unput(yycopy[i]);
@@ -196,11 +189,13 @@ Chngd line: unsetenv had "counter ++" added"  ...  Thinking the space between is
 	}
 	if (ifNonBuild(yytext) && counter == 0)
 	{
-		//printf("ifNonBuild returned TRUE with this command: ");
+		// printf("ifNonBuild returned TRUE with this command: ");
 		//printf(nutRED "%s", yytext);
 		//printf(nutGREEN "\n");
 		yylval.string = strdup(yytext);
+		counter ++;
 		return GEN;
+		counter = 0;
 	}
 	else
 	{

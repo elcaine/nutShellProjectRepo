@@ -110,7 +110,16 @@ int genCommandOne(char* comm)
 		   { genCommand(comm,		NULL,		NULL,		NULL,		NULL,		NULL,		NULL); return 1; }
 
 int genCommandTwo(char* comm, char* arg1)
-		   { genCommand(comm,		arg1,		NULL,		NULL,		NULL,		NULL,		NULL); return 1; }
+		   {
+			 
+			   
+			    genCommand(comm,		arg1,		NULL,		NULL,		NULL,		NULL,		NULL); 
+		    
+		   if((strchr(arg1, '*') != NULL) || (strchr(arg1, '?') != NULL)) {
+		runGlobal(comm, arg1);
+		return 1;
+	 }
+	  return 1; }
 
 int genCommandTre(char* comm, char* arg1, char* arg2)
 		   { genCommand(comm,		arg1,		arg2,		NULL,		NULL,		NULL,		NULL); return 1; }
@@ -126,6 +135,10 @@ int genCommandSix(char* comm, char* arg1, char* arg2, char* arg3, char* arg4, ch
 
 int genCommand(	  char* comm, char* arg1, char* arg2, char* arg3, char* arg4, char* arg5, char* arg6)
 {
+	    if((strcmp(comm, "echo") == 0) || (strcmp(comm, "cat") == 0)){
+		 runCommand(comm,arg1);
+		 return 1; 
+	 }
 	int i1 = 0, i2 = 0;								// Indices 
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH // *I think the +1 can go
 	char argWords[128][128] = { '\0' };				// Array to hold each directory

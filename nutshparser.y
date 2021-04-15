@@ -11,11 +11,12 @@ int yylex();
 %union {char *string;}
 
 %start cmd_line
-%token <string> WIPE BYE PWD HOME GEN SETENV UNSETENV PRINTENV CD STRING ALIAS UNALIAS PIPE END
+%token <string> WIPE BYE PWD HOME GEN SETENV UNSETENV PRINTENV CD STRING ALIAS UNALIAS PIPE END_OF_FILE END
 
 %%
 cmd_line    :
 	BYE END 		                {exit(1);					return 1; }
+	|END_OF_FILE					{exit(1);					return 1; }
 	| WIPE END						{wipe();					return 1; }
 	| PWD END						{runPWD();					return 1; } 
 	| HOME END						{runCD(varTable.word[1]);	return 1; }

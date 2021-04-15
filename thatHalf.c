@@ -156,36 +156,37 @@ int runPrintenv() {
 int runCommand(char* name, char* fml) {
 	//printf("Here it is %s\t", name);
 	//printf("fml is: %s\n", fml);
-	if ((strchr(fml, '*') != NULL) || (strchr(fml, '?') != NULL)) {
-
+	 if((strchr(fml, '*') != NULL) || (strchr(fml, '?') != NULL)) {
+		 
 		runGlobal(name, fml);
 		return 1;
-	}
-	pid_t  pid;
-	int    status;
+	 } 
+	 pid_t  pid;
+     int    status;
+     
+     if ((pid = fork()) < 0) {     /* fork a child process           */
+          printf("*** ERROR: forking child process failed\n");
+          exit(1);
+     }
+     else if (pid == 0) {          /* for the child process:         */
+        
+	
+		  char *binaryPath = findPath(name);
+          char *args[] = {binaryPath,fml, NULL};
+ 	     if(  execv(binaryPath, args) < 0) {  
+ 		 //if (execv("/bin", &globbuf.gl_pathv[0]) < 0) {     /* execute the command  */
+               printf("*** ERROR: exec failed\n");
+               exit(1);
+          }
+     }
+     else {                                  /* for the parent:      */
+          while (wait(&status) != pid);
+     }
 
-	if ((pid = fork()) < 0) {     /* fork a child process           */
-		printf("*** ERROR: forking child process failed\n");
-		exit(1);
-	}
-	else if (pid == 0) {          /* for the child process:         */
+return 1; 
+            
+ }
 
-
-		char* binaryPath = findPath(name);
-		char* args[] = { binaryPath,fml, NULL };
-		if (execv(binaryPath, args) < 0) {
-			//if (execv("/bin", &globbuf.gl_pathv[0]) < 0) {     /* execute the command  */
-			printf("*** ERROR: exec failed\n");
-			exit(1);
-		}
-	}
-	else {                                  /* for the parent:      */
-		while (wait(status) != pid);
-	}
-
-	return 1;
-
-}
 
 
 //******************* RUN WILDCARD MATCHING ******************* 
@@ -216,7 +217,7 @@ int runGlobal(char* command, char* argument) {
 		}
 	}
 	else {                                  /* for the parent:      */
-		while (wait(status) != pid);
+		while (wait(0));
 	}
 
 	return 1;
