@@ -62,6 +62,9 @@ bool ifVar(char* name) {
 
 //******************* CHECK IF THE STRING IS A COMMAND *******************
 bool ifNonBuild(char* name) {
+if((strchr(name, '.') != NULL)) {
+		return false;
+ 	 } 
 	int i1 = 0, i2 = 0;								// Indices 
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
