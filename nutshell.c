@@ -1,5 +1,3 @@
-// This is ONLY a demo micro-shell whose purpose is to illustrate the need for and how to handle nested alias substitutions and Flex start conditions.
-// This is to help students learn these specific capabilities, the code is by far not a complete nutshell by any means.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,44 +23,52 @@ int main()
     char cwd[PATH_MAX];
     getcwd(cwd, sizeof(cwd));
 
-    strcpy(varTable.var[varIndex], "PWD");      // 0
-    strcpy(varTable.word[varIndex], cwd);
-    varIndex++;
+    strcpy(varTable.var[varIndex], "PWD");      // 0  * Pretty sure this isn't actually used... but, all the
+    strcpy(varTable.word[varIndex], cwd);       //      other varIndices count on this = 0.  Can't really kill
+    varIndex++;                                 //      because something might loop through varTable, starting here
     strcpy(varTable.var[varIndex], "HOME");     // 1
     strcpy(varTable.word[varIndex], cwd);
     varIndex++;
-    strcpy(varTable.var[varIndex], "PROMPT");   // 2
+    strcpy(varTable.var[varIndex], "PROMPT");   // 2  * Prolly samething here as above.
     strcpy(varTable.word[varIndex], "$");
     varIndex++;
-    strcpy(varTable.var[varIndex], "PATH");     // 3
+    strcpy(varTable.var[varIndex], "PATH");     // 3    The mighty might PATH (... of confusion!)
     strcpy(varTable.word[varIndex], ".:/bin");
+    // Need to remove the line below (hard coding location of non-built-in commands)
+    //strcat(varTable.word[varIndex], ":/usr/bin"); // *this, this is the line to kill
+    varIndex++;
+    strcpy(varTable.var[varIndex], ".");
+    strcpy(varTable.word[varIndex], cwd);       // 4    The mighty mighty current directory
     varIndex++;
 
-    strcpy(aliasTable.name[aliasIndex], ".");   // 0 initializes current working dir
-    strcpy(aliasTable.word[aliasIndex], cwd);
-    aliasIndex++;
-
-    char *pointer = strrchr(cwd, '/');
-    while(*pointer != '\0') {
-        *pointer ='\0';
+    char* pointer = strrchr(cwd, '/');
+    while (*pointer != '\0') 
+    {
+        *pointer = '\0';
         pointer++;
     }
-    strcpy(aliasTable.name[aliasIndex], "..");  // 1 initializes current parent directory
-    strcpy(aliasTable.word[aliasIndex], cwd);
-    aliasIndex++;
+    strcpy(varTable.var[varIndex], "..");
+    strcpy(varTable.word[varIndex], cwd);       // 5    The mighty mighty parent directory
+    varIndex++;
 
     char* userName = getenv("USER");
-    //system("clear");
+    //system("clear");  // Need to uncomment this for submission
     printf("\n****************************************\n");
     printf("*                                      *\n");
-    printf("* SSSSSssssstarting the NuttyShell!!!! *\n");
+    printf("* Fareed and Daniel's Nutshell Project *\n");
     printf("*                                      *");
     printf("\n****************************************\n");
 
     while(1)
     {        
-        printf(nutRED "%s" nutYELLOW, userName);
-        printf("[%s]>> " nutGREEN, varTable.word[2]);
+        printf(nutRED "%s", userName);
+        printf(nutYELLOW ":");
+        if (strcmp(varTable.word[4], varTable.word[1]) != 0)
+        {
+            printf(nutBLUE "%s", varTable.word[4]);
+        }
+        printf(nutYELLOW "$");
+        printf(nutGREEN " ");
         yyparse();
     }
     return 0;
