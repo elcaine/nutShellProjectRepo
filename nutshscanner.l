@@ -1,7 +1,4 @@
 %{
-// This is ONLY a demo micro-shell whose purpose is to illustrate the need for and how to handle nested alias substitutions and how to use Flex start conditions
-// This is to help students learn these specific capabilities, the code is by far not a complete nutshell by any means.
-// Only "alias name word", "cd word", and "bye" run. 
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
@@ -10,16 +7,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
- #include <dirent.h> 
- //
+#include <dirent.h> 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <assert.h>
-	
  int counter = 0; 
  
 //#define unput(c) {yytchar= (c); if(yytchar=='\n') {yylineno--; *yysptr++=yytchar;}
+//******************* SUBSTITUTE ALIAS *******************
 char* subAliases(char* name){
     for (int i = 0; i < aliasIndex; i++) {
         if(strcmp(aliasTable.name[i], name) == 0) {
@@ -37,6 +33,8 @@ bool ifAlias(char* name){
     }
     return false;
 }
+
+//******************* SUBSTITUTE VARIABLE *******************
 char* subVar(char* name){
     for (int i = 0; i < varIndex; i++) {
         if(strcmp(varTable.var[i], name) == 0) {
@@ -55,17 +53,15 @@ bool ifVar(char* name){
     return false;
 }
 
-bool ifNonBuild(char* name){
-int i1 = 0, i2 = 0;								// Indices 
+//******************* CHECK IF THE STRING IS A COMMAND *******************
+bool ifNonBuild(char* name) {
+	int i1 = 0, i2 = 0;								// Indices 
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
 	strcpy(argPtr, varTable.word[3]);
 
-	// *** Remove these printf shits ***
-	//printf("===== PARSING PATH INTO DIRECTORY ELEMENTS =====\n");
-	//printf("runLS with input parameter (char* name): %s\n", name);
-	//printf("PATH from varTable.word[3]: %s\n", varTable.word[3]);
-
+	// Makes current directory the first directory of the directories array
+	strcpy(argWords[i1++], varTable.word[4]); // This is clunky.  Should "." automate this somehow?
 	// Appends each char from the PATH, moving to next string when ':' encountered
 	while (argPtr[i2] != '\0') {
 		if (argPtr[i2] == ':') {
@@ -111,22 +107,24 @@ int i1 = 0, i2 = 0;								// Indices
 	}
 
 	if (i2 > i1) {
-	//	printf("Command not found, you suck!!!\n");
+		//	printf("Command not found, you suck!!!\n");
 		return false;
 	}
 	else {
-	//	printf("*** Command %s is in %s ***\n", name, argWords[i2]);
-	//	printf("So, you found it, WHAT... AN... ACCOMPLISHMENT\tYou must be so proud!\n");
-		strcat(argWords[i2], "/cat"); // * will need to change hard-coded "/ls" to 
+		//	printf("*** Command %s is in %s ***\n", name, argWords[i2]);
+		//	printf("So, you found it, WHAT... AN... ACCOMPLISHMENT\tYou must be so proud!\n");
+		//strcat(argWords[i2], "/cat"); // * will need to change hard-coded "/ls" to 
 		return true;
 	}
 }
+
+
 %}
 %array
 %option noyywrap
 
 
-CHAR            [>*.A-Za-z!\/_-][.A-Za-z!\/_-]*
+CHAR            [>:*?.A-Za-z!\/_-][.A-Za-z!\/_-]*
 ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -]*
 
 %x string_condition
@@ -140,9 +138,10 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ 
 <string_condition>[\"]           {BEGIN(INITIAL);} 
 
 <variable_condition>{ANYCHAR}+   { if(ifVar(yytext)){
- 			              yylval.string = strdup( subVar(yytext)); 
-		                      printf("%s\n",yylval.string); return STRING;}
-	                          else{ printf("Error, no such variable");} }
+ 			 yylval.string = strdup( subVar(yytext)); 
+			 counter = 0;
+ 			 return STRING;}
+				else{ printf("Error, no such variable");} }
 <variable_condition>"}"          {BEGIN(INITIAL);} 
 
  
@@ -150,27 +149,20 @@ ANYCHAR         [)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ -][)(*&%$#@!`;,\.a-zA-Z0-9'*/_=~ 
 
 [ ]		    { }
 check 		{return CHECK;}
-wipe        	{ return WIPE; }
-bye        	{ return BYE; }
-home       	{ return HOME; }
-pwd		{ counter ++; return PWD; } 
-gen		{ return GEN; }
-setenv		{ counter ++;return SETENV; }
-unsetenv	{ counter ++;return UNSETENV; }
-printenv	{ counter ++;return PRINTENV; }			
-cd		{ counter ++; return CD;}
-unalias		{ counter ++; return UNALIAS; } //SUBJECT TO CHANGE
-alias		{ return ALIAS; }
-"\n"		{ return END; }
+wipe        { return WIPE; }
+bye         { return BYE; }
+home        { return HOME; }
+pwd			{ return PWD; } 
+setenv		{ return SETENV; }
+unsetenv	{ counter ++; return UNSETENV; }
+pipe 		{ return PIPE;}
+printenv	{  counter ++; return PRINTENV; }			
+cd		    {   counter ++;  return CD;}
+unalias		{  counter ++; return UNALIAS; }
+alias		{   return ALIAS; }
+"\n"		{  return END; }
 [\"]       	{ BEGIN (string_condition); }
 "${"		{ BEGIN (variable_condition); }
-[0-9]+     	{ printf("found an integer, = %d\n",atoi( yytext ) ); }
-"$"        	{ printf("found a dollar sign\n" ); }
-"{"		{ printf("found a curly brace\n" ); }
-"<"        	{ printf("found forward\n" ); }
-">"        	{ printf("found backwards\n" ); }
-"|"        	{ printf("found a pipe\n" ); }
-"&"        	{ printf("found an amp\n" ); }
 "Count"		{ printf("%d\n", counter); }
 
 
@@ -179,16 +171,17 @@ alias		{ return ALIAS; }
 {CHAR}+     {
                 if(ifAlias(yytext) && counter == 0) 
                 {
-                   printf("alias before substitute: %s\n", yytext);
+                   // printf("alias before substitute: %s\n", yytext);
                    char *yycopy = strdup( subAliases(yytext) );
                    for ( int i = strlen(subAliases(yytext)) - 1; i >= 0; --i )
                        unput( yycopy[i] );
                    free( yycopy );
                 } 
-		          if(ifNonBuild(yytext) && counter == 0){
-			       printf("here we go sub: %s\n", yytext);
+		          if(ifNonBuild(yytext) && counter == 0) {
+			       // printf("here we go sub: %s\n", yytext);
                     yylval.string = strdup(yytext);
-                    return COMMAND;
+					 counter ++;
+                    return GEN;
                 }  
                 else 
                 {
