@@ -24,10 +24,7 @@ int wipe() {
 //Print working directory	***** DOES THIS NEED TO CHANGED??? ******* // updated on 4/12, should be good now
 int runPWD()
 {
-	char cwd[PATH_MAX];			// Remove this line for deliverable
-	getcwd(cwd, sizeof(cwd));	// This one too (I feel like just calling the linux command was pseudo cheating)
-	printf("*** Need to remove the hacker directory line below for submisison ***\nCurrent hacker directory:  %s\n", cwd);
-	printf("Directory (not cheating!): %s\n", varTable.word[4]);
+	printf("Current directory: %s\n", varTable.word[4]);
 	return 1;
 }
 
@@ -125,13 +122,13 @@ int genCommand(char* name, char* fml, char* die)
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
 	strcpy(argPtr, varTable.word[3]);
 
-	// *** Remove these printf shits ***
+	/*/ *** Remove these printf shits ***
 	printf("\n===== NON-BUILT-IN COMMAND <%s> RECEIVED FOR US TO DEAL WITH =====\n\n", name);
 
 	printf("===== PARSING PATH INTO DIRECTORY ELEMENTS =====\n");
 	printf("genCommand with input parameters *name: <%s>, *fml: <%s>, *die: <%s>\n", name, fml, die);
 	printf("Raw PATH string from varTable.word[3] found in directory: [%s]\n", varTable.word[3]);
-
+	//*/
 	// Makes current directory the first directory of the directories array only if command leads with '/'
 	if (argPtr[0] == '/') // This is clunky.  Should "." automate this somehow?
 	{
@@ -152,7 +149,7 @@ int genCommand(char* name, char* fml, char* die)
 	}
 
 	//  Printf-ing the different directories parsed *** REMOVE THESE 14ish LINES SUBMISSION ***
-	printf("\n===== PRINTING EACH DIRECTORY AFTER PARSING FROM RAW COLON SEPARATED PATH STRING =====\n");
+	//printf("\n===== PRINTING EACH DIRECTORY AFTER PARSING FROM RAW COLON SEPARATED PATH STRING =====\n");
 	i2 = 0;
 	if (argWords[i2][0] == '\0')
 	{
@@ -161,18 +158,19 @@ int genCommand(char* name, char* fml, char* die)
 	}
 	while (argWords[i2][0] != '\0')
 	{
-		printf("argWords[%d] holds: [%s]\n", i2, argWords[i2]);
+		//printf("argWords[%d] holds: [%s]\n", i2, argWords[i2]);
 		++i2;
 	}
 
 	// Search for target command within the parsed directories
-	printf("\n===== SEARCHING PARSED DIRECTORIES FOR COMMAND <%s> =====\n", name);
+	//printf("\n===== SEARCHING PARSED DIRECTORIES FOR COMMAND <%s> =====\n", name);
+
 	DIR* d;
 	struct dirent* dir;
 	bool found = false;
 	for (i2 = 0; i2 <= i1; ++i2)
 	{
-		printf("Now inspectimating dir: [%s]\n", argWords[i2]);
+		//printf("Now inspectimating dir: [%s]\n", argWords[i2]);
 		d = opendir(argWords[i2]);
 		if (d)
 		{
@@ -195,13 +193,13 @@ int genCommand(char* name, char* fml, char* die)
 	}
 	else
 	{
-		printf("*** Command <%s> is in directory [%s] ***\n", name, argWords[i2]);
+		//printf("*** Command <%s> is in directory [%s] ***\n", name, argWords[i2]);
 		strcat(argWords[i2], "/");	// * will need to change hard-coded "/ls" to dynamic input
 		strcat(argWords[i2], name);	// Updated on 4/12 to be dynamic
 	}
 
 	// Doing the fork() stuff
-	printf("\n===== STARTING fork() STUFF =====\n");
+	//printf("\n===== STARTING fork() STUFF =====\n");
 	/*
 	* CAINE.....   See about maybe making a large paramater'd genCommand to catch a lot of args.
 	* (would be nice if genCommand could receive just 2 args: STRING:command-name, [ARRAY]:argument-arguments)
@@ -225,7 +223,7 @@ int genCommand(char* name, char* fml, char* die)
 	if (p1 < 0)				{ printf("Fork did not forked!\n");	exit(0);}
 	else if (p1 == 0)		// Child
 	{
-		// Remove all this printf crap for deliverable
+		/*/ Remove all this printf crap for deliverable
 		printf("This is the child. pid: %d\t", getpid());
 		printf("Child's parent: %d\n", p1);
 		printf("\n===== COMMAND <%s> EXECUTED VIA EXECV (", name);
@@ -234,19 +232,21 @@ int genCommand(char* name, char* fml, char* die)
 		printf(nutRED "\n");
 		//... end of printf crap
 		//close(pipe1[0]); // Abandoned pipe dreams for now.
+		//*/
 		execv(argWords[i2], args);	// execv(parameter 1, parameter 2)
 									// 1. char*:	the path/command
 									// 2. char*[]:	parameter 1 is first, rest are opitons, NULL must be last element
 	}
 	else					// Parent
 	{
-		printf("This is the parent.  pid: %d\t", getpid());
-		printf("parent's parent: %d\n", p1);
+		//printf("This is the parent.  pid: %d\t", getpid());
+		//printf("parent's parent: %d\n", p1);
 		wait(0);
 	}
+	/*
 	printf(nutGREEN "*** End of results from command <%s> execution ****\n", name);
 	printf("\n===== END OF NON-BUILT-IN COMMAND <%s> =====\n", name);
-
+	//*/
 	return 1;
 }
 //*/
