@@ -15,12 +15,23 @@ Despite the option to use c++, we chose to build our project in c to gain more e
 Flexx and Bison were used as the lexxer and parser tools respectively.  There still exist some bugs that have the effect of leaving a word/token from the previous command in the input buffer causing unexpected behavior in subsequent commands. Majority of the bugs that we ahve encountered are due to the counter logic that checks if the argument is the first or not. While some commands like alias and cd are relying on it due to their nature, it can also produce bugs i.e.  Sometimes a command will not work correctly unless another (usually single-word) command has been executed before it. Due to the counter issue.  Executing "cd" with no arguments and then "ls" as the next command does not work -- immediately executing "ls" again does work however.
 ### Not implemented 
 These were not implemented because the "developers" were lazy, did not want to learn. But we simply ran out of time. Once we hit the wall with pipes, we realized that either our logic of executing commands is flawed or we have been doing the whole project wrong. Starting over was definetly not a choice. 
+
 1.Pipes 
+
+
 3.Redirection
-4.Command table
-5.'?' wildcard matching
-6.~tilde expansion
-7.file name completion
+
+
+5.Command table
+
+
+6.'?' wildcard matching
+
+
+8.~tilde expansion
+
+
+10.file name completion
 
 
 ### Built-in commands
