@@ -16,22 +16,12 @@ Flexx and Bison were used as the lexxer and parser tools respectively.  There st
 ### Not implemented 
 These were not implemented because the "developers" were lazy, did not want to learn. But we simply ran out of time. Once we hit the wall with pipes, we realized that either our logic of executing commands is flawed or we have been doing the whole project wrong. Starting over was definetly not a choice. 
 
-1.Pipes 
-
-
-3.Redirection
-
-
-5.Command table
-
-
-6.'?' wildcard matching
-
-
-8.~tilde expansion
-
-
-10.file name completion
+1. Pipes 
+2. Redirection
+3. Command table
+4. '?' wildcard matching
+4. ~tilde expansion
+5. file name completion
 
 
 ### Built-in commands
