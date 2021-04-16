@@ -206,7 +206,7 @@ int runGlobal(char* command, char* argument) {
 		}
 	}
 	else {                                  /* for the parent:      */
-		while (wait(&status) != pid);
+		while (wait((int)&status) != pid);
 		//wait(0);
 	}
 	return 1;
@@ -214,7 +214,7 @@ int runGlobal(char* command, char* argument) {
 
 //******************* FIND PATH ******************* 
 char* findPath(char* name) {
-	int i1 = 0, i2 = 0;							// Indices 
+	int i1 = 0, i2 = 0;								// Indices 
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
 	strcpy(argPtr, varTable.word[3]);

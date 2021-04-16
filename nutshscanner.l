@@ -106,7 +106,7 @@ if((strchr(name, '.') != NULL)) {
 	}
 
 	if (i2 > i1) {
-		printf("Command <%s> not found.\tPlease try again.\n", name);
+		//printf("Command <%s> not found.\tPlease try again.\n", name);
 		return false;
 	}
 	else {
