@@ -35,9 +35,9 @@ These were not implemented because the "developers" were lazy, did not want to l
 
 
 ### Built-in commands
-1. **setenv variable word**: This command sets the value of the variable ​variable​ to be ​word​. Works as intended
-2. **unsetenv variable**: This command will remove the binding of ​variable​.
-3. **printenv**: This command prints out the values of all the environment variables, in the formatvariable=value​, one entry per line. Works as intended
+1. **setenv variable word**: This command sets the value of the variable variable to be word. Works as intended
+2. **unsetenv variable**: This command will remove the binding of variable.
+3. **printenv**: This command prints out the values of all the environment variables, in the formatvariable=value, one entry per line. Works as intended
 4. **cd**: Works as expected.  Notes:  "cd" without any arguments returns to the home directory (a built-in command, "home" also achieves this).  "cd ." politely ignores a meaningless command.  "cd .." changes to the current directory's parent directory.  While in the home directory the current user and dollar sign prompt only are given.  While in any other directory the path is printed also.  This was done to replicate currently established shells.  Was able to implement this in such a way that a space did not require quotes to execute (only one space can be handled however, although this could have been expanded with more time).
 5. **alias name word**: Adds a new alias to the shell. Works as expected. Will give error message if trying to create a loop or self alias.  
 6. **unalias name**: deletes selected alias
@@ -67,4 +67,3 @@ Both developers communicated constantly via MS Teams and Zoom.  Both were very p
 
 ## TESTING
 Testing was done extensively on both developer's systems; one a Mac, the other a PC, which introduced a unique quandary:  a particular variable on one system would throw a warning if it had an ampersand dereferencing it while it would throw a warning on the other's system if the ampersand was not present.  The curious grader is invited to review functions "runCommand" and "runGlobal" towards the end of the "thatHalf.c" file for variable, "status."
-  
