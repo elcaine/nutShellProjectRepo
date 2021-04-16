@@ -17,8 +17,11 @@
 #include "global.h"
 #include "thatHalf.h"
 
+extern char** environ; //Global variable of user environment 
+
 int yyerror(char* s) {
-	printf("yyerror: %s\n", s);
+	//printf("yyerror: %s\n", s);
+	//printf("\n");
 	return 0;
 }
 
@@ -41,7 +44,6 @@ int runSetAlias(char* name, char* word) {
 	strcpy(aliasTable.name[aliasIndex], name);
 	strcpy(aliasTable.word[aliasIndex], word);
 	aliasIndex++;
-
 	return 1;
 }
 //******************* PRINTS ALIAS ******************* 
@@ -69,7 +71,6 @@ int runUnalias(char* name) {
 //https://man7.org/tlpi/code/online/dist/proc/setenv.c.html#setenv
 int runSetenv(const char* name, const char* value)
 {
-
 	strcpy(varTable.var[varIndex], name);
 	strcpy(varTable.word[varIndex], value);
 	varIndex++;
@@ -94,7 +95,6 @@ int runSetenv(const char* name, const char* value)
 	strcpy(es, name);
 	strcat(es, "=");
 	strcat(es, value);
-
 	return (putenv(es) != 0) ? -1 : 0;
 }
 
@@ -115,32 +115,24 @@ int runUnsetenv(const char* name)
 	}
 
 	len = strlen(name);
-
 	for (ep = environ; *ep != NULL; )
 		if (strncmp(*ep, name, len) == 0 && (*ep)[len] == '=') {
-
 			/* Remove found entry by shifting all successive entries
 			   back one element */
-
 			for (sp = ep; *sp != NULL; sp++)
 				*sp = *(sp + 1);
 
 			/* Continue around the loop to further instances of 'name' */
-
 		}
 		else {
 			ep++;
 		}
-
+	--varIndex;
 	return 0;
 }
 
 
 //******************* PRINT ENVIROMENT ******************* 
-
-extern char** environ; //Global variable of user environment 
-
-//just iterate through it 
 int runPrintenv() {
 	char** s = environ;
 
@@ -154,13 +146,11 @@ int runPrintenv() {
 
 //******************* RUN SIMPLE COMMAND ******************* 
 int runCommand(char* name, char* fml) {
-	//printf("Here it is %s\t", name);
-	//printf("fml is: %s\n", fml);
-	 if((strchr(fml, '*') != NULL) || (strchr(fml, '?') != NULL)) {
+	 /*if((strchr(fml, '*') != NULL) || (strchr(fml, '?') != NULL)) {
 		 
 		runGlobal(name, fml);
 		return 1;
-	 } 
+	 } //*/
 	 pid_t  pid;
      int    status;
      
@@ -175,19 +165,16 @@ int runCommand(char* name, char* fml) {
           char *args[] = {binaryPath,fml, NULL};
  	     if(  execv(binaryPath, args) < 0) {  
  		 //if (execv("/bin", &globbuf.gl_pathv[0]) < 0) {     /* execute the command  */
-               printf("*** ERROR: exec failed\n");
+               printf("*** ERROR: exec failed in runCommand()\n");
                exit(1);
           }
      }
      else {                                  /* for the parent:      */
-          while (wait(&status) != pid);
+          //while (wait(&status) != pid);
+		 wait(0);
      }
-
-return 1; 
-            
+	return 1;            
  }
-
-
 
 //******************* RUN WILDCARD MATCHING ******************* 
 int runGlobal(char* command, char* argument) {
@@ -197,7 +184,13 @@ int runGlobal(char* command, char* argument) {
 	glob(argument, GLOB_DOOFFS, NULL, &globbuf);
 	globbuf.gl_pathv[0] = command;
 
-
+	char* e = "dumdum";
+	char* binaryPath = findPath(command);
+	if (strcmp(e, binaryPath) == 0)
+	{
+		printf("Error in runGlobal\n");
+		return 1;
+	}
 	pid_t  pid;
 	int    status;
 
@@ -206,10 +199,6 @@ int runGlobal(char* command, char* argument) {
 		exit(1);
 	}
 	else if (pid == 0) {          /* for the child process:         */
-
-
-		char* binaryPath = findPath(command);
-		char* args[] = { binaryPath,  NULL };
 		if (execv(binaryPath, &globbuf.gl_pathv[0]) < 0) {
 			//if (execv("/bin", &globbuf.gl_pathv[0]) < 0) {     /* execute the command  */
 			printf("*** ERROR: exec failed\n");
@@ -217,21 +206,18 @@ int runGlobal(char* command, char* argument) {
 		}
 	}
 	else {                                  /* for the parent:      */
-		while (wait(0));
+		while (wait(&status) != pid);
+		//wait(0);
 	}
-
 	return 1;
-
 }
 
 //******************* FIND PATH ******************* 
 char* findPath(char* name) {
-
 	int i1 = 0, i2 = 0;							// Indices 
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
 	strcpy(argPtr, varTable.word[3]);
-
 
 	// Appends each char from the PATH, moving to next string when ':' encountered
 	while (argPtr[i2] != '\0') {
@@ -244,17 +230,10 @@ char* findPath(char* name) {
 		++i2;
 	}
 
-	//  Printf-ing the different directories parsed *** REMOVE ME ***
-	i2 = 0;
-	//printf("The colon separated PATH variables after parsing:\n");
-	if (argWords[i2][0] == '\0') {
+	if (argWords[0][0] == '\0') {
 		//printf("*** SOME KIND OF ERROR HERE (no directories in PATH?) ***\n");
 		exit(1);
 	}
-	while (argWords[i2][0] != '\0') {
-		++i2;
-	}
-
 
 	DIR* d;
 	struct dirent* dir;
@@ -272,8 +251,17 @@ char* findPath(char* name) {
 		if (found) break;
 	}
 
-	char* directory = strcat(argWords[i2], "/");
-	directory = strcat(argWords[i2], name);
-
-	return directory;
+	char* directory;
+	if (i2 > i1)
+	{
+		strcpy(directory, "dumdum");
+		return directory;
+	}
+	else
+	{
+		strcpy(directory, argWords[i2]);
+		strcat(directory, "/");
+		strcat(directory, name);
+		return directory;
+	}
 }

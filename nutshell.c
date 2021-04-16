@@ -13,7 +13,6 @@
 #define nutCYAN        "\x1b[36m"
 #define nutRESET       "\x1b[0m"
 
-//char *getcwd(char *buf, size_t size);  // commented this out, seems like it can be removed
 extern int yyparse();
 
 int main()
@@ -29,13 +28,11 @@ int main()
     strcpy(varTable.var[varIndex], "HOME");     // 1
     strcpy(varTable.word[varIndex], cwd);
     varIndex++;
-    strcpy(varTable.var[varIndex], "PROMPT");   // 2  * Prolly samething here as above.
+    strcpy(varTable.var[varIndex], "PROMPT");   // 2  * Prolly same thing here as above.
     strcpy(varTable.word[varIndex], "$");
     varIndex++;
     strcpy(varTable.var[varIndex], "PATH");     // 3    The mighty might PATH (... of confusion!)
     strcpy(varTable.word[varIndex], ".:/bin");
-    // Need to remove the line below (hard coding location of non-built-in commands)
-    //strcat(varTable.word[varIndex], ":/usr/bin"); // *this, this is the line to kill
     varIndex++;
     strcpy(varTable.var[varIndex], ".");
     strcpy(varTable.word[varIndex], cwd);       // 4    The mighty mighty current directory
@@ -52,7 +49,7 @@ int main()
     varIndex++;
 
     char* userName = getenv("USER");
-    //system("clear");  // Need to uncomment this for submission
+    system("clear");
     printf("\n****************************************\n");
     printf("*                                      *\n");
     printf("* Fareed and Daniel's Nutshell Project *\n");

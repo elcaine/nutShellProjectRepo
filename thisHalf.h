@@ -14,6 +14,7 @@ int genCommandFor(char* comm, char* arg1, char* arg2, char* arg3);
 int genCommandFiv(char* comm, char* arg1, char* arg2, char* arg3, char* arg4);
 int genCommandSix(char* comm, char* arg1, char* arg2, char* arg3, char* arg4, char* arg5);
 int genCommand	 (char* comm, char* arg1, char* arg2, char* arg3, char* arg4, char* arg5, char* arg6);
-//extern int wait(int);
-
+extern int wait(int);
+int runCommand(char* command, char* argument);
+int runGlobal(char* command, char* argument);
 #endif

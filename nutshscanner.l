@@ -70,17 +70,8 @@ if((strchr(name, '.') != NULL)) {
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
 	strcpy(argPtr, varTable.word[3]);
 
-	/*/ *** Remove these printf shits ***
-	//
-	printf("===== ENTERING ifNonBuild QUALIFIER =====\n");
-	printf("Command name being checked in ifNonBuild: ");
-	printf(nutRED "%s", name);
-	printf(nutBLUE "\n");
-	//*/
-	//printf("PATH from varTable.word[3]: %s\n", varTable.word[3]);
-
 	// Makes current directory the first directory of the directories array
-	strcpy(argWords[i1++], varTable.word[4]); // This is clunky.  Should "." automate this somehow?
+	strcpy(argWords[i1++], varTable.word[4]);
 	// Appends each char from the PATH, moving to next string when ':' encountered
 	while (argPtr[i2] != '\0') {
 		if (argPtr[i2] == ':') {
@@ -92,31 +83,20 @@ if((strchr(name, '.') != NULL)) {
 		++i2;
 	}
 
-	//  Printf-ing the different directories parsed *** REMOVE ME ***
-	i2 = 0;
-	//printf("The colon separated PATH variables after parsing:\n");
-	if (argWords[i2][0] == '\0') {
-		//printf("*** SOME KIND OF ERROR HERE (no directories in PATH?) ***\n");
+	if (argWords[0][0] == '\0') {
+		printf("*** SOME KIND OF ERROR HERE (no directories in PATH?) ***\n");
 		return 1;
-	}
-	while (argWords[i2][0] != '\0') {
-		//printf("argWords[%d] holds: <%s>\n", i2, argWords[i2]);
-		++i2;
 	}
 
 	// Search for target command within the parsed directories
-	//printf("\n\n===== SEARCHING PARSED DIRECTORIES =====\n");
 	DIR* d;
 	struct dirent* dir;
 	bool found = false;
 	for (i2 = 0; i2 <= i1; ++i2) {
-		//printf("Now inspectimating dir: %s\n", argWords[i2]);
 		d = opendir(argWords[i2]);
 		if (d) {
 			while ((dir = readdir(d)) != NULL) {
 				if (strcmp(dir->d_name, name) == 0) {
-					//printf("*** WINNER WINNER, CHICKEN DINNER --> %s IS HERE!!!\n", dir->d_name);
-					//printf("%s\n", dir->d_name);
 					found = true;
 				}
 			}
@@ -126,13 +106,10 @@ if((strchr(name, '.') != NULL)) {
 	}
 
 	if (i2 > i1) {
-		//	printf("Command not found, you suck!!!\n");
+		printf("Command <%s> not found.\tPlease try again.\n", name);
 		return false;
 	}
 	else {
-		//	printf("*** Command %s is in %s ***\n", name, argWords[i2]);
-		//	printf("So, you found it, WHAT... AN... ACCOMPLISHMENT\tYou must be so proud!\n");
-		//strcat(argWords[i2], "/cat"); // * will need to change hard-coded "/ls" to 
 		return true;
 	}
 }
@@ -192,17 +169,12 @@ alias		{ counter ++; return ALIAS; }
 	}
 	if (ifNonBuild(yytext) && counter == 0)
 	{
-		// printf("ifNonBuild returned TRUE with this command: ");
-		//printf(nutRED "%s", yytext);
-		//printf(nutGREEN "\n");
 		yylval.string = strdup(yytext);
-		counter ++;
+		//counter ++;
 		return GEN;
-		counter = 0;
 	}
 	else
 	{
-		//printf("string is: %s\n", yytext);
 		printf(nutGREEN);
 		yylval.string = strdup(yytext);
 		counter = 0;

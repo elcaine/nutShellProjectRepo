@@ -11,6 +11,6 @@ int runUnalias(char* name);
 int runCommand(char* command, char* argument);
 int runGlobal(char* command, char* argument);
 char* findPath(char* name);
-//extern int wait(int);
+extern int wait(int);
 
 #endif

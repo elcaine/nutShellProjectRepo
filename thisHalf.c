@@ -12,11 +12,8 @@
 #define nutGREEN       "\x1b[32m"
 #define nutBLUE        "\x1b[34m"
 
-int wipe() {
-	/*
-	for (int i = 0; i < 10000; ++i) {
-		printf("\e[1;1H\e[2J");
-	}//*/
+int wipe()
+{
 	system("clear");
 }
 
@@ -100,26 +97,12 @@ int runCD(char* arg)
 	return 1;
 }
 
-//
-//	Runs genCommand if no arguments are passed to it (not sure if this should be part of deliverable since
-//	variable numbers of arguments (none, 1, 2, 3, 4, ... ?) might need to be caught in lexx/yacc nested rule
-//	...  not sure
-//
-
 int genCommandOne(char* comm)
 		   { genCommand(comm,		NULL,		NULL,		NULL,		NULL,		NULL,		NULL); return 1; }
 
 int genCommandTwo(char* comm, char* arg1)
-		   {
-			 
-			   
-			    genCommand(comm,		arg1,		NULL,		NULL,		NULL,		NULL,		NULL); 
-		    
-		   if((strchr(arg1, '*') != NULL) || (strchr(arg1, '?') != NULL)) {
-		runGlobal(comm, arg1);
-		return 1;
-	 }
-	  return 1; }
+		   { /*if ((strchr(arg1, '*') != NULL) || (strchr(arg1, '?') != NULL))  { runGlobal(comm, arg1); return 1; }//*/
+			 genCommand(comm,		arg1,		NULL,		NULL,		NULL,		NULL,		NULL); return 1; }
 
 int genCommandTre(char* comm, char* arg1, char* arg2)
 		   { genCommand(comm,		arg1,		arg2,		NULL,		NULL,		NULL,		NULL); return 1; }
@@ -135,24 +118,17 @@ int genCommandSix(char* comm, char* arg1, char* arg2, char* arg3, char* arg4, ch
 
 int genCommand(	  char* comm, char* arg1, char* arg2, char* arg3, char* arg4, char* arg5, char* arg6)
 {
-	    if((strcmp(comm, "echo") == 0) || (strcmp(comm, "cat") == 0)){
+	    /*if((strcmp(comm, "echo") == 0) || (strcmp(comm, "cat") == 0)){
 		 runCommand(comm,arg1);
 		 return 1; 
-	 }
+	 }//*/
 	int i1 = 0, i2 = 0;								// Indices 
 	char argPtr[(int)strlen(varTable.word[3]) + 1];	// strcpy below copies PATH // *I think the +1 can go
 	char argWords[128][128] = { '\0' };				// Array to hold each directory
 	strcpy(argPtr, varTable.word[3]);
 
-	/*/ *** Remove these printf shits ***
-	printf("\n===== NON-BUILT-IN COMMAND <%s> RECEIVED FOR US TO DEAL WITH =====\n\n", comm);
-
-	printf("===== PARSING PATH INTO DIRECTORY ELEMENTS =====\n");
-	printf("genCommand with input parameters *name: <%s>, *arg1: <%s>, *arg2: <%s>\n", comm, arg1, arg2);
-	printf("Raw PATH string from varTable.word[3] found in directory: [%s]\n", varTable.word[3]);
-	//*/
 	// Makes current directory the first directory of the directories array only if command leads with '/'
-	if (argPtr[0] == '/') // This is clunky.  Should "." automate this somehow?
+	if (argPtr[0] == '/')
 	{
 		strcpy(argWords[i1++], varTable.word[4]);
 	}
@@ -170,29 +146,18 @@ int genCommand(	  char* comm, char* arg1, char* arg2, char* arg3, char* arg4, ch
 		++i2;
 	}
 
-	//  Printf-ing the different directories parsed *** REMOVE THESE 14ish LINES SUBMISSION ***
-	//printf("\n===== PRINTING EACH DIRECTORY AFTER PARSING FROM RAW COLON SEPARATED PATH STRING =====\n");
-	i2 = 0;
-	if (argWords[i2][0] == '\0')
+	if (argWords[0][0] == '\0')
 	{
 		printf("*** SOME KIND OF ERROR HERE (no directories in PATH?) ***\n");
 		return 1;
 	}
-	while (argWords[i2][0] != '\0')
-	{
-		//printf("argWords[%d] holds: [%s]\n", i2, argWords[i2]);
-		++i2;
-	}
 
 	// Search for target command within the parsed directories
-	//printf("\n===== SEARCHING PARSED DIRECTORIES FOR COMMAND <%s> =====\n", comm);
-
 	DIR* d;
 	struct dirent* dir;
 	bool found = false;
 	for (i2 = 0; i2 <= i1; ++i2)
 	{
-		//printf("Now inspectimating dir: [%s]\n", argWords[i2]);
 		d = opendir(argWords[i2]);
 		if (d)
 		{
@@ -210,23 +175,17 @@ int genCommand(	  char* comm, char* arg1, char* arg2, char* arg3, char* arg4, ch
 
 	if (i2 > i1)
 	{
-		printf("Command not found, so sad!!!\n");
+		printf("Command <%s> not found, so sad!!!\n", comm);
 		return 1;
 	}
 	else
 	{
-		//printf("*** Command <%s> is in directory [%s] ***\n", comm, argWords[i2]);
-		strcat(argWords[i2], "/");	// * will need to change hard-coded "/ls" to dynamic input
-		strcat(argWords[i2], comm);	// Updated on 4/12 to be dynamic
+		strcat(argWords[i2], "/");
+		strcat(argWords[i2], comm);
 	}
 
 	// Doing the fork() stuff
-	//printf("\n===== STARTING fork() STUFF =====\n");
-	/*
-	* CAINE.....   See about maybe making a large paramater'd genCommand to catch a lot of args.
-	* (would be nice if genCommand could receive just 2 args: STRING:command-name, [ARRAY]:argument-arguments)
-	*/
-	char* args[] = { argWords[i2], arg1, arg2, arg3, arg4, arg5, arg6, NULL }; // varTable.word[1] = HOME (for testing ls)
+	char* args[] = { argWords[i2], arg1, arg2, arg3, arg4, arg5, arg6, NULL };
 	pid_t p1, p2;
 	int pipe1[2];
 
@@ -245,30 +204,14 @@ int genCommand(	  char* comm, char* arg1, char* arg2, char* arg3, char* arg4, ch
 	if (p1 < 0)				{ printf("Fork did not forked!\n");	exit(0);}
 	else if (p1 == 0)		// Child
 	{
-		/*/ Remove all this printf crap for deliverable
-		printf("This is the child. pid: %d\t", getpid());
-		printf("Child's parent: %d\n", p1);
-		printf("\n===== COMMAND <%s> EXECUTED VIA EXECV (", comm);
-		printf(nutRED "results " nutGREEN);
-		printf("below) =====");
-		printf(nutRED "\n");
-		//... end of printf crap
-		//close(pipe1[0]); // Abandoned pipe dreams for now.
-		//*/
 		execv(argWords[i2], args);	// execv(parameter 1, parameter 2)
 									// 1. char*:	the path/command
 									// 2. char*[]:	parameter 1 is first, rest are opitons, NULL must be last element
 	}
 	else					// Parent
 	{
-		//printf("This is the parent.  pid: %d\t", getpid());
-		//printf("parent's parent: %d\n", p1);
 		wait(0);
 	}
-	/*
-	printf(nutGREEN "*** End of results from command <%s> execution ****\n", comm);
-	printf("\n===== END OF NON-BUILT-IN COMMAND <%s> =====\n", comm);
-	//*/
 	return 1;
 }
 //*/
